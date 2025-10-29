@@ -164,10 +164,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // =========================
     function renderReturns(returns) {
         const pendingReturns = returns.filter(ret => ret.items.some(item => item.status !== '完成'));
+        
+        // Toggle empty state class for centering
         if (pendingReturns.length === 0) {
+            returnsContainer.classList.add('is-empty');
             returnsContainer.innerHTML = '<div class="empty-state"><p>目前沒有待處理的退貨單。</p></div>';
             return;
         }
+        
+        returnsContainer.classList.remove('is-empty');
         returnsContainer.innerHTML = pendingReturns.map(createReturnCardHTML).join('');
         attachReturnListeners();
     }
