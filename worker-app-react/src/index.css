@@ -1,0 +1,10 @@
+/* 全域 CSS 檔案 */
+
+/* 解決手機版標題斷行問題 */
+h1, .MuiTypography-h4 {
+    word-break: keep-all; /* 避免在奇怪的地方斷行 */
+    white-space: nowrap; /* 強制不換行 */
+    overflow: hidden;
+    text-overflow: ellipsis; /* 如果還是太長，顯示省略號 */
+    max-width: 100%;
+}
