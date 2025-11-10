@@ -11,8 +11,8 @@ h1, .MuiTypography-h4 {
 
 /* 強制設定收件人欄位寬度 */
 .recipient-name-grid {
-    width: 75% !important;
+    width: 50% !important;
 }
 .recipient-phone-grid {
-    width: 25% !important;
+    width: 50% !important;
 }
