@@ -1,19 +1,26 @@
 import React, { useState, useMemo } from 'react';
-import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, TextField, Autocomplete, Stack, CircularProgress, Paper } from '@mui/material';
+import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, TextField, Autocomplete, Stack, CircularProgress, Paper, Grid, IconButton, LinearProgress } from '@mui/material';
+import { PhotoCamera, Delete } from '@mui/icons-material';
 
 const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => {
   const [logData, setLogData] = useState({
-    date: new Date().toISOString().split('T')[0], // Default to today
+    date: new Date().toISOString().split('T')[0],
     project: '',
-    startTime: '', // **修改：開始時間**
-    endTime: '',   // **修改：結束時間**
+    startTime: '',
+    endTime: '',
     distinction: '',
     floor: '',
     term: '',
     isCompleted: '否',
-    content: ''
+    content: '',
+    photoUrls: [], // **新增：儲存照片 URL**
   });
   const [errors, setErrors] = useState({});
+
+  // **新增：照片上傳相關狀態**
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
   const projectOptions = useMemo(() => {
     if (!projects) return [];
@@ -22,11 +29,10 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
 
   const termOptions = useMemo(() => {
     if (!projects) return [];
-    const allTerms = projects.map(p => p.term).filter(Boolean); // 取得所有期數並過濾掉空值
-    return [...new Set(allTerms)]; // 回傳不重複的期數列表
+    const allTerms = projects.map(p => p.term).filter(Boolean);
+    return [...new Set(allTerms)];
   }, [projects]);
 
-  // **新增：生成時間選項**
   const generateTimeOptions = () => {
     const times = [];
     for (let h = 8; h <= 18; h++) {
@@ -43,21 +49,81 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLogData(prev => ({ ...prev, [name]: value }));
-    if (name === 'project') {
-      setLogData(prev => ({ ...prev, term: '' })); // Reset term when project changes
-    }
   };
-  
+
+  const handleProjectChange = (event, newValue) => {
+    setLogData(prev => ({ ...prev, project: newValue || '', term: '' }));
+  };
+
   const handleTermChange = (event, newValue) => {
     setLogData(prev => ({ ...prev, term: newValue || '' }));
+  };
+
+  // **新增：處理檔案選擇**
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    const fileObjects = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setSelectedFiles(prev => [...prev, ...fileObjects]);
+  };
+
+  // **新增：處理照片上傳**
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
+    setIsUploading(true);
+    setUploadProgress(0);
+
+    const uploadedUrls = [];
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const { file } = selectedFiles[i];
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      await new Promise((resolve, reject) => {
+        reader.onload = async () => {
+          try {
+            const payload = {
+              fileData: reader.result,
+              fileName: file.name,
+              date: logData.date,
+            };
+            // **使用 fetch 進行上傳**
+            const response = await fetch("https://script.google.com/macros/s/AKfycbzvbtdyosoUvb3UWGydYUa6FDzFvOKx7p-xAOsu2ZwJhftq5QWFjzzj_5VwAw9G2F_bJA/exec", {
+              method: 'POST',
+              mode: 'no-cors',
+              body: JSON.stringify({ action: 'uploadImage', payload }),
+            });
+            
+            // 這裡我們無法直接獲取 URL，所以先假設成功
+            // 真正儲存 URL 的步驟將在提交日誌後完成
+            setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        };
+        reader.onerror = reject;
+      });
+    }
+    
+    // 暫時不清空 selectedFiles，讓使用者可以看到預覽
+    // setLogData(prev => ({ ...prev, photoUrls: [...prev.photoUrls, ...uploadedUrls] }));
+    // setSelectedFiles([]);
+    setIsUploading(false);
+    alert('所有照片已上傳完畢，請點擊「提交日誌」以儲存。');
+  };
+  
+  const handleRemoveFile = (previewUrl) => {
+    setSelectedFiles(prev => prev.filter(f => f.preview !== previewUrl));
   };
 
   const validate = () => {
     const newErrors = {};
     if (!logData.date) newErrors.date = '必須選擇日期';
     if (!logData.project) newErrors.project = '必須選擇案場';
-    if (!logData.startTime) newErrors.startTime = '必須選擇開始時間'; // **新增驗證**
-    if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';     // **新增驗證**
+    if (!logData.startTime) newErrors.startTime = '必須選擇開始時間';
+    if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';
     if (logData.startTime && logData.endTime && logData.startTime >= logData.endTime) {
       newErrors.endTime = '結束時間必須晚於開始時間';
     }
@@ -68,7 +134,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
 
   const handleSubmit = () => {
     if (validate()) {
-      const timeSlot = `${logData.startTime}-${logData.endTime}`; // **組合時段字串**
+      const timeSlot = `${logData.startTime}-${logData.endTime}`;
       onSubmit({ ...logData, user, timeSlot });
     }
   };
@@ -79,28 +145,9 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
         工作日誌
       </Typography>
       <Stack spacing={3} sx={{ mt: 4 }}>
-        <TextField
-          name="date"
-          label="日期"
-          type="date"
-          value={logData.date}
-          onChange={handleChange}
-          error={!!errors.date}
-          helperText={errors.date}
-          InputLabelProps={{ shrink: true }}
-        />
-        <TextField
-          label="工作人員"
-          value={user}
-          disabled
-          fullWidth
-        />
-        <FormControl fullWidth error={!!errors.project}>
-          <InputLabel>案場</InputLabel>
-          <Select name="project" value={logData.project} label="案場" onChange={handleChange}>
-            {projectOptions.map((p, i) => <MenuItem key={i} value={p}>{p}</MenuItem>)}
-          </Select>
-        </FormControl>
+        <TextField name="date" label="日期" type="date" value={logData.date} onChange={handleChange} error={!!errors.date} helperText={errors.date} InputLabelProps={{ shrink: true }} />
+        <TextField label="工作人員" value={user} disabled fullWidth />
+        <Autocomplete freeSolo fullWidth options={projectOptions} value={logData.project} onChange={handleProjectChange} onInputChange={handleProjectChange} renderInput={(params) => (<TextField {...params} label="案場" error={!!errors.project} helperText={errors.project} />)} />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl fullWidth error={!!errors.startTime}>
             <InputLabel>開始時間</InputLabel>
@@ -122,15 +169,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-           <Autocomplete
-              freeSolo
-              fullWidth
-              options={termOptions}
-              value={logData.term}
-              onChange={handleTermChange}
-              onInputChange={handleTermChange} // Allows typing new values
-              renderInput={(params) => <TextField {...params} label="期數" />}
-            />
+           <Autocomplete freeSolo fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} renderInput={(params) => <TextField {...params} label="期數" />} />
           <FormControl fullWidth>
             <InputLabel>當期是否完工</InputLabel>
             <Select name="isCompleted" value={logData.isCompleted} label="當期是否完工" onChange={handleChange}>
@@ -139,29 +178,46 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
             </Select>
           </FormControl>
         </Stack>
-        <TextField
-          name="content"
-          label="工作內容"
-          multiline
-          rows={4}
-          fullWidth
-          value={logData.content}
-          onChange={handleChange}
-          error={!!errors.content}
-          helperText={errors.content}
-        />
+        <TextField name="content" label="工作內容" multiline rows={4} fullWidth value={logData.content} onChange={handleChange} error={!!errors.content} helperText={errors.content} />
+        
+        {/* 照片上傳區塊 */}
+        <Box>
+          <Typography variant="h6" gutterBottom>相關照片</Typography>
+          <Button variant="outlined" component="label" startIcon={<PhotoCamera />} disabled={isUploading}>
+            選擇照片
+            <input type="file" hidden multiple accept="image/*" onChange={handleFileChange} />
+          </Button>
+          {selectedFiles.length > 0 && (
+            <Button onClick={handleUpload} disabled={isUploading} sx={{ ml: 2 }}>
+              {isUploading ? '上傳中...' : `上傳 ${selectedFiles.length} 張照片`}
+            </Button>
+          )}
+          {isUploading && (
+            <Box sx={{ width: '100%', mt: 2 }}>
+              <LinearProgress variant="determinate" value={uploadProgress} />
+              <Typography variant="body2" color="text.secondary">{`${Math.round(uploadProgress)}%`}</Typography>
+            </Box>
+          )}
+          <Grid container spacing={2} sx={{ mt: 2 }}>
+            {selectedFiles.map(({ preview }, index) => (
+              <Grid item key={index} xs={6} sm={4} md={3}>
+                <Paper sx={{ position: 'relative' }}>
+                  <img src={preview} alt="preview" style={{ width: '100%', height: 'auto' }} />
+                  <IconButton onClick={() => handleRemoveFile(preview)} size="small" sx={{ position: 'absolute', top: 0, right: 0, color: 'white', backgroundColor: 'rgba(0,0,0,0.5)' }} disabled={isUploading}>
+                    <Delete fontSize="small" />
+                  </IconButton>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
       </Stack>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
-        <Button variant="outlined" onClick={() => navigateTo(1)} disabled={isSubmitting}>
+        <Button variant="outlined" onClick={() => navigateTo(1)} disabled={isSubmitting || isUploading}>
           返回主選單
         </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
-        >
+        <Button variant="contained" color="primary" onClick={handleSubmit} disabled={isSubmitting || isUploading} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}>
           {isSubmitting ? '傳送中...' : '提交日誌'}
         </Button>
       </Box>

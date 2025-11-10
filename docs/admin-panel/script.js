@@ -35,10 +35,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = 
             currentTab === 'requests' ? requestsContainer :
             currentTab === 'returns' ? returnsContainer :
-            logsContainer;
+            currentTab === 'logs' ? logsContainer : null;
         
-        if (!container.innerHTML || container.querySelector('.empty-state')) {
-            container.innerHTML = `<div class="loading-placeholder"><div class="spinner"></div><p>正在載入資料...</p></div>`;
+        if (!container || !container.innerHTML || container.querySelector('.empty-state')) {
+            if(container) container.innerHTML = `<div class="loading-placeholder"><div class="spinner"></div><p>正在載入資料...</p></div>`;
         } else {
             loadingIndicator.classList.add('visible');
         }

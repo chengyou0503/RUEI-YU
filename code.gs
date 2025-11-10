@@ -1,5 +1,5 @@
 // =========================================================================
-//         瑞宇水電 - 後端邏輯 (v10.0) - [新增工作日誌功能]
+//         瑞宇水電 - 後端邏輯 (v11.0) - [新增照片上傳功能]
 // =========================================================================
 
 // =========================
@@ -16,7 +16,7 @@ function doGet(e) {
     case 'getUsers': data = getUsers(); break;
     case 'getProjects': data = getProjects(); break;
     case 'getItems': data = getItems(); break;
-    case 'getWorkLogs': data = getWorkLogs(); break; // **新增**
+    case 'getWorkLogs': data = getWorkLogs(); break;
     default: data = { status: 'error', message: '無效的 GET action' };
   }
   if (callback) return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -37,12 +37,9 @@ function doPost(e) {
       case 'submitReturnRequest': response = submitReturnRequest(payload); break;
       case 'updateReturnStatus': response = updateReturnStatus(payload); break;
       case 'updateReturnItemStatus': response = updateReturnItemStatus(payload); break;
-      case 'submitWorkLog': response = submitWorkLog(payload); break; // **新增**
+      case 'submitWorkLog': response = submitWorkLog(payload); break;
+      case 'uploadImage': response = uploadImage(payload); break; // **新增**
       default: response = createJsonResponse({ status: 'error', message: '無效的 POST action' });
-    }
-    // 舊的 callback 邏輯可能不再需要，但暫時保留以防萬一
-    if (e.parameter.callback) {
-      return ContentService.createTextOutput(`${e.parameter.callback}(${JSON.stringify(response)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
     }
     return response;
   } catch (error) {
@@ -91,12 +88,11 @@ function getReturns() {
   } catch (error) { Logger.log('getReturns Error: ' + error.toString()); return { status: 'error', message: '讀取退貨單資料時發生錯誤: ' + error.toString() }; }
 }
 
-// **新增：讀取工作日誌**
 function getWorkLogs() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
     const values = sheet.getDataRange().getDisplayValues();
-    values.shift(); // 移除標頭
+    values.shift(); 
     if (values.length === 0) return [];
     const logs = values.map(row => ({
       id: row[0],
@@ -109,16 +105,16 @@ function getWorkLogs() {
       floor: row[7],
       term: row[8],
       isCompleted: row[9],
-      content: row[10]
+      content: row[10],
+      photoUrls: row[11] ? row[11].split(',').map(url => url.trim()) : [] // **新增**
     }));
-    return logs.sort((a, b) => b.id - a.id); // 根據 ID 降序排序
+    return logs.sort((a, b) => b.id - a.id);
   } catch (error) {
     Logger.log('getWorkLogs Error: ' + error.toString());
     return { status: 'error', message: '讀取工作日誌資料時發生錯誤: ' + error.toString() };
   }
 }
 
-// **更新：根據使用者要求讀取指定欄位**
 function getUsers() { 
   return getSheetData("使用者", (row) => ({
     applicant: row[0],
@@ -128,7 +124,6 @@ function getUsers() {
   })); 
 }
 
-// **更新：讀取專案名稱與期數**
 function getProjects() { 
   return getSheetData("專案", (row) => ({
     projectName: row[0],
@@ -176,7 +171,6 @@ function submitReturnRequest(payload) {
   } catch (error) { Logger.log('submitReturnRequest Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '提交退貨申請失敗: ' + error.toString() }); }
 }
 
-// **新增：提交工作日誌**
 function submitWorkLog(payload) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
@@ -197,7 +191,8 @@ function submitWorkLog(payload) {
       payload.floor,
       payload.term,
       payload.isCompleted,
-      payload.content
+      payload.content,
+      payload.photoUrls ? payload.photoUrls.join(', ') : '' // **新增**
     ];
     
     sheet.appendRow(newRow);
@@ -210,6 +205,25 @@ function submitWorkLog(payload) {
   }
 }
 
+// **新增：圖片上傳函式**
+function uploadImage(payload) {
+  try {
+    const { fileData, fileName, date } = payload;
+    const decodedData = Utilities.base64Decode(fileData.split(',')[1]);
+    const blob = Utilities.newBlob(decodedData, MimeType.JPEG, fileName);
+
+    const rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), "工作日誌照片");
+    const dateFolder = getOrCreateFolder(rootFolder, date);
+
+    const file = dateFolder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return createJsonResponse({ status: 'success', url: file.getUrl() });
+  } catch (error) {
+    Logger.log('uploadImage Error: ' + error.toString());
+    return createJsonResponse({ status: 'error', message: '圖片上傳失敗: ' + error.toString() });
+  }
+}
 
 function updateStatus(payload) {
   try {
@@ -247,7 +261,7 @@ function updateItemStatus(payload) {
 
 function updateReturnStatus(payload) {
   try {
-    const { id, newStatus } = payload; // 這裡的 id 是指退貨單 ID
+    const { id, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("退貨單");
     const data = sheet.getDataRange().getValues();
     const statusColumn = 8; // H 欄
@@ -268,10 +282,10 @@ function updateReturnItemStatus(payload) {
     const { returnId, itemName, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("退貨單");
     const data = sheet.getDataRange().getValues();
-    const idCol = 0, nameCol = 4, statusCol = 7; // A, E, H
+    const idCol = 0, nameCol = 4, statusCol = 7; 
     for (let i = 1; i < data.length; i++) {
       if (data[i][idCol] == returnId && data[i][nameCol] == itemName) {
-        sheet.getRange(i + 1, statusCol + 1).setValue(newStatus); // getRange is 1-based
+        sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
         return createJsonResponse({ status: 'success' });
       }
     }
@@ -294,6 +308,15 @@ function getSheetData(sheetName, rowMapping) {
     return values.filter(row => row && row[0] && row[0].trim() !== "").map(rowMapping);
   } catch (error) { Logger.log(`getSheetData Error (${sheetName}): ` + error.toString()); return { status: 'error', message: `讀取 '${sheetName}' 資料表時發生錯誤: ` + error.toString() }; }
 }
+
+function getOrCreateFolder(parentFolder, folderName) {
+  const folders = parentFolder.getFoldersByName(folderName);
+  if (folders.hasNext()) {
+    return folders.next();
+  }
+  return parentFolder.createFolder(folderName);
+}
+
 function createJsonResponse(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 function getNextId(sheet) {
   const lastRow = sheet.getLastRow();
