@@ -11,12 +11,14 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
   });
   const [errors, setErrors] = useState({});
 
-  // **新增：當收件人姓名變更時，自動帶入電話**
+  // **優化：當收件人姓名變更時，自動帶入電話；若無則清空**
   useEffect(() => {
     if (data.recipientName) {
       const foundUser = allUsers.find(u => u.recipient === data.recipientName);
       if (foundUser && foundUser.recipientPhone) {
         setData(prev => ({ ...prev, recipientPhone: foundUser.recipientPhone }));
+      } else {
+        setData(prev => ({ ...prev, recipientPhone: '' })); // **優化：查無使用者時清空電話**
       }
     }
   }, [data.recipientName, allUsers]);
@@ -74,11 +76,11 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
         
         <TextField name="deliveryDate" label="送貨日期" type="date" fullWidth value={data.deliveryDate} onChange={handleChange} error={!!errors.deliveryDate} helperText={errors.deliveryDate} InputLabelProps={{ shrink: true }} />
 
-        <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
+        <Grid container spacing={2}>
+            <Grid item xs={12} sm={12}>
                 <TextField label="申請人電話" type="tel" fullWidth value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} />
             </Grid>
-             <Grid item xs={12} sm={6}>
+             <Grid item xs={12} sm={7}>
                 <Autocomplete
                   freeSolo
                   options={recipientOptions}
@@ -95,7 +97,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
                   )}
                 />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={5}>
                 <TextField name="recipientPhone" label="收件人電話" type="tel" fullWidth value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} />
             </Grid>
         </Grid>

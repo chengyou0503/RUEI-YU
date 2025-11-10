@@ -132,8 +132,8 @@ function App() {
               updateFormData({ 
                   user, 
                   userPhone: userData ? userData.applicantPhone : '',
-                  recipientName: userData ? userData.recipient : '',
-                  recipientPhone: userData ? userData.recipientPhone : ''
+                  recipientName: '', // **優化：預設為空白**
+                  recipientPhone: '' // **優化：預設為空白**
               }); 
               navigateTo(1); 
           }} 
