@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/RUEI-YU/static/css/main.a7f4c3ae.css",
-    "main.js": "/RUEI-YU/static/js/main.4ff7eaf3.js",
+    "main.js": "/RUEI-YU/static/js/main.cb78da25.js",
     "index.html": "/RUEI-YU/index.html",
     "main.a7f4c3ae.css.map": "/RUEI-YU/static/css/main.a7f4c3ae.css.map",
-    "main.4ff7eaf3.js.map": "/RUEI-YU/static/js/main.4ff7eaf3.js.map"
+    "main.cb78da25.js.map": "/RUEI-YU/static/js/main.cb78da25.js.map"
   },
   "entrypoints": [
     "static/css/main.a7f4c3ae.css",
-    "static/js/main.4ff7eaf3.js"
+    "static/js/main.cb78da25.js"
   ]
 }

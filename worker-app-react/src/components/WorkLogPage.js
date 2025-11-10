@@ -83,7 +83,14 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           </Select>
         </FormControl>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <TextField name="timeSlot" label="時段 (例如: 上午)" fullWidth value={logData.timeSlot} onChange={handleChange} />
+          <FormControl fullWidth>
+            <InputLabel>時段</InputLabel>
+            <Select name="timeSlot" value={logData.timeSlot} label="時段" onChange={handleChange}>
+              <MenuItem value="08:00-12:00 (上午)">08:00-12:00 (上午)</MenuItem>
+              <MenuItem value="13:00-17:00 (下午)">13:00-17:00 (下午)</MenuItem>
+              <MenuItem value="08:00-17:00 (全日)">08:00-17:00 (全日)</MenuItem>
+            </Select>
+          </FormControl>
           <TextField name="distinction" label="區別 (例如: A棟)" fullWidth value={logData.distinction} onChange={handleChange} />
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
