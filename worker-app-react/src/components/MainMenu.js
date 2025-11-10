@@ -9,7 +9,7 @@ const MainMenu = ({ formData, navigateTo }) => {
   const menuItems = [
     { title: '工地請料', icon: <AddShoppingCartIcon sx={{ fontSize: 40 }} color="primary" />, step: 2, disabled: false },
     { title: '退貨申請', icon: <ReplayIcon sx={{ fontSize: 40 }} color="secondary" />, step: 10, disabled: false },
-    { title: '工作日誌', icon: <EditNoteIcon sx={{ fontSize: 40 }} color="disabled" />, step: -1, disabled: true },
+    { title: '工作日誌', icon: <EditNoteIcon sx={{ fontSize: 40 }} color="action" />, step: 20, disabled: false },
   ];
 
   return (

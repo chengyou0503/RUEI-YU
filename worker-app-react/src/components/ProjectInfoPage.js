@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
-import { Box, Typography, Select, MenuItem, Button, FormControl, InputLabel, TextField, Grid, Stack } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Typography, Select, MenuItem, Button, FormControl, InputLabel, TextField, Grid, Stack, Autocomplete } from '@mui/material';
 
-const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo }) => {
+const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUsers }) => {
   const [data, setData] = useState({
     project: formData.project || '',
     deliveryAddress: formData.deliveryAddress || '',
     deliveryDate: formData.deliveryDate || '',
-    userPhone: formData.userPhone || '', // 新增申請人電話
     recipientName: formData.recipientName || '',
     recipientPhone: formData.recipientPhone || '',
   });
   const [errors, setErrors] = useState({});
 
+  // **新增：當收件人姓名變更時，自動帶入電話**
+  useEffect(() => {
+    if (data.recipientName) {
+      const foundUser = allUsers.find(u => u.recipient === data.recipientName);
+      if (foundUser && foundUser.recipientPhone) {
+        setData(prev => ({ ...prev, recipientPhone: foundUser.recipientPhone }));
+      }
+    }
+  }, [data.recipientName, allUsers]);
+
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleRecipientChange = (event, newValue) => {
+    setData(prev => ({ ...prev, recipientName: newValue || '' }));
   };
 
   const validate = () => {
@@ -22,7 +36,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo }) => 
     if (!data.project) newErrors.project = '必須選擇專案';
     if (!data.deliveryAddress) newErrors.deliveryAddress = '必須填寫送貨地點';
     if (!data.deliveryDate) newErrors.deliveryDate = '必須選擇送貨日期';
-    if (!data.userPhone) newErrors.userPhone = '必須填寫申請人電話'; // 新增驗證
+    if (!formData.userPhone) newErrors.userPhone = '必須填寫申請人電話';
     if (!data.recipientName) newErrors.recipientName = '必須填寫收件人姓名';
     if (!data.recipientPhone) newErrors.recipientPhone = '必須填寫收件人電話';
     setErrors(newErrors);
@@ -31,10 +45,17 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo }) => 
 
   const handleNext = () => {
     if (validate()) {
-      updateFormData(data);
+      // 將頁面上的 data 和 formData 中已有的 userPhone 一起更新回去
+      updateFormData({ ...data, userPhone: formData.userPhone });
       navigateTo(3);
     }
   };
+  
+  const recipientOptions = useMemo(() => {
+    if (!allUsers) return [];
+    const names = allUsers.map(u => u.recipient).filter(Boolean);
+    return [...new Set(names)];
+  }, [allUsers]);
 
   return (
     <Box>
@@ -55,10 +76,24 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo }) => 
 
         <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
-                <TextField name="userPhone" label="申請人電話" type="tel" fullWidth value={data.userPhone} onChange={handleChange} error={!!errors.userPhone} helperText={errors.userPhone} />
+                <TextField label="申請人電話" type="tel" fullWidth value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} />
             </Grid>
              <Grid item xs={12} sm={6}>
-                <TextField name="recipientName" label="收件人姓名" fullWidth value={data.recipientName} onChange={handleChange} error={!!errors.recipientName} helperText={errors.recipientName} />
+                <Autocomplete
+                  freeSolo
+                  options={recipientOptions}
+                  value={data.recipientName}
+                  onChange={handleRecipientChange}
+                  onInputChange={handleRecipientChange}
+                  renderInput={(params) => (
+                    <TextField 
+                      {...params} 
+                      label="收件人姓名" 
+                      error={!!errors.recipientName} 
+                      helperText={errors.recipientName} 
+                    />
+                  )}
+                />
             </Grid>
             <Grid item xs={12} sm={6}>
                 <TextField name="recipientPhone" label="收件人電話" type="tel" fullWidth value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} />

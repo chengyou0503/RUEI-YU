@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Container, CircularProgress, Typography, Alert, Paper, Box, Stepper, Step, StepLabel, Fade } from '@mui/material';
 
 // 導入所有頁面元件
@@ -11,10 +11,12 @@ import SuccessPage from './components/SuccessPage';
 import ReturnPage from './components/ReturnPage';
 import ReturnSuccessPage from './components/ReturnSuccessPage';
 import ShoppingCart from './components/ShoppingCart';
+import WorkLogPage from './components/WorkLogPage'; // **新增**
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyJgGCkZuDDff4zo5Vo-yAQUpOJipZvv8ich1r2X73EZHfHmwF6bg4UM71p-70ATQITsQ/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzvbtdyosoUvb3UWGydYUa6FDzFvOKx7p-xAOsu2ZwJhftq5QWFjzzj_5VwAw9G2F_bJA/exec";
 const requestSteps = ['身份驗證', '主選單', '專案資訊', '選擇品項', '預覽與確認'];
 const returnSteps = ['身份驗證', '主選單', '退貨申請'];
+const logSteps = ['身份驗證', '主選單', '填寫日誌']; // **新增**
 
 function App() {
   // --- 狀態管理 ---
@@ -24,7 +26,7 @@ function App() {
   const [error, setError] = useState(null);
 
   // 初始資料
-  const [users, setUsers] = useState([]);
+  const [allUsersData, setAllUsersData] = useState([]); // **新增：儲存完整使用者資料**
   const [projects, setProjects] = useState([]);
   const [items, setItems] = useState([]);
 
@@ -33,8 +35,16 @@ function App() {
     user: '', project: '', deliveryAddress: '', deliveryDate: '',
     userPhone: '', recipientName: '', recipientPhone: '', 
     cart: [],
-    returnCart: [], // **新增：退貨購物車**
+    returnCart: [],
   });
+  
+  // **優化：從完整資料派生出不重複的申請人列表**
+  const users = useMemo(() => {
+    if (!allUsersData) return [];
+    const applicantNames = allUsersData.map(u => u.applicant).filter(Boolean);
+    return [...new Set(applicantNames)];
+  }, [allUsersData]);
+
 
   // --- 資料載入 ---
   useEffect(() => {
@@ -51,7 +61,7 @@ function App() {
     Promise.all([fetchData('getUsers'), fetchData('getProjects'), fetchData('getItems')])
       .then(([usersData, projectsData, itemsData]) => {
         const itemsWithId = itemsData.map((item, index) => ({ ...item, id: `item-${index}` }));
-        setUsers(usersData);
+        setAllUsersData(usersData); // **儲存完整資料**
         setProjects(projectsData);
         setItems(itemsWithId);
       }).catch(err => {
@@ -63,7 +73,7 @@ function App() {
   const navigateTo = (step) => setCurrentStep(step);
   const updateFormData = (data) => setFormData(prev => ({ ...prev, ...data }));
   const updateCart = (cart) => updateFormData({ cart });
-  const updateReturnCart = (returnCart) => updateFormData({ returnCart }); // **新增**
+  const updateReturnCart = (returnCart) => updateFormData({ returnCart });
 
   const handleRequestSubmit = async () => {
     setSubmitting(true);
@@ -86,28 +96,58 @@ function App() {
       navigateTo(11);
     } catch (err) { setError('退貨申請提交失敗，請檢查網路連線。'); } finally { setSubmitting(false); }
   };
+  
+  // **新增：處理工作日誌提交**
+  const handleWorkLogSubmit = async (logPayload) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'submitWorkLog', payload: logPayload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+      navigateTo(21); // 導向日誌成功頁面
+    } catch (err) {
+      setError('日誌提交失敗，請檢查您的網路連線並稍後再試。');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  const resetApp = (isReturn = false) => {
-    setFormData(prev => ({
-      ...prev,
+  const resetApp = (isReturn = false, isLog = false) => {
+    const currentUser = formData.user;
+    setFormData({
+      user: currentUser, // 保留登入者
       project: '', deliveryAddress: '', deliveryDate: '', userPhone: '', 
       recipientName: '', recipientPhone: '', cart: [], returnCart: []
-    }));
-    navigateTo(isReturn ? 10 : 1);
+    });
+    navigateTo(1); // 全部返回主選單
   };
 
   // --- 渲染邏輯 ---
   const renderCurrentStep = () => {
     const pageProps = { navigateTo, updateFormData, formData };
     switch (currentStep) {
-      case 0: return <LoginPage users={users} onLogin={(user) => { updateFormData({ user }); navigateTo(1); }} />;
+      case 0: return <LoginPage 
+          users={users} 
+          onLogin={(user) => { 
+              const userData = allUsersData.find(u => u.applicant === user);
+              updateFormData({ 
+                  user, 
+                  userPhone: userData ? userData.applicantPhone : '',
+                  recipientName: userData ? userData.recipient : '',
+                  recipientPhone: userData ? userData.recipientPhone : ''
+              }); 
+              navigateTo(1); 
+          }} 
+      />;
       case 1: return <MainMenu {...pageProps} />;
-      case 2: return <ProjectInfoPage {...pageProps} projects={projects} />;
+      case 2: return <ProjectInfoPage {...pageProps} projects={projects.map(p => p.projectName)} allUsers={allUsersData} />;
       case 3: return <ProductSelectionPage {...pageProps} items={items} cart={formData.cart} updateCart={updateCart} />;
       case 4: return <PreviewPage {...pageProps} onSubmit={handleRequestSubmit} isSubmitting={submitting} />;
-      case 5: return <SuccessPage onNewRequest={() => resetApp(false)} />;
-      case 10: return <ReturnPage {...pageProps} projects={projects} items={items} returnCart={formData.returnCart} updateReturnCart={updateReturnCart} onSubmit={handleReturnSubmit} isSubmitting={submitting} />;
+      case 5: return <SuccessPage title="請購單已成功送出！" onNewRequest={() => resetApp(false)} buttonText="建立新的請購單" />;
+      case 10: return <ReturnPage {...pageProps} projects={projects.map(p => p.projectName)} items={items} returnCart={formData.returnCart} updateReturnCart={updateReturnCart} onSubmit={handleReturnSubmit} isSubmitting={submitting} />;
       case 11: return <ReturnSuccessPage onBackToMenu={() => resetApp(true)} />;
+      // **新增：工作日誌流程**
+      case 20: return <WorkLogPage {...pageProps} user={formData.user} projects={projects} onSubmit={handleWorkLogSubmit} isSubmitting={submitting} />;
+      case 21: return <SuccessPage title="工作日誌已成功提交！" onNewRequest={() => resetApp(false, true)} buttonText="返回主選單" />;
       default: return <Typography>未知的步驟</Typography>;
     }
   };
@@ -115,15 +155,28 @@ function App() {
   if (loading) return <Container sx={{ textAlign: 'center', mt: '20vh' }}><CircularProgress size={60} /><Typography sx={{ mt: 2 }}>資料載入中...</Typography></Container>;
   if (error) return <Container sx={{ mt: 4 }}><Alert severity="error">{error}</Alert></Container>;
 
-  const activeSteps = currentStep >= 10 ? returnSteps : requestSteps;
-  const activeStepIndex = currentStep >= 10 ? 2 : (currentStep > 5 ? -1 : currentStep);
+  const getActiveSteps = () => {
+    if (currentStep >= 20) return logSteps;
+    if (currentStep >= 10) return returnSteps;
+    return requestSteps;
+  };
+  
+  const getActiveStepIndex = () => {
+    if (currentStep >= 20) return currentStep - 20 + 2; // 0, 1, 2 -> 2, 3, 4...
+    if (currentStep >= 10) return 2;
+    if (currentStep > 5) return -1;
+    return currentStep;
+  };
+
+  const activeSteps = getActiveSteps();
+  const activeStepIndex = getActiveStepIndex();
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ mb: 4 }}>
-        瑞宇水電 - 請購系統
+        瑞宇水電 - 工作系統
       </Typography>
-      {currentStep < 5 || currentStep === 10 ? (
+      {currentStep < 5 || currentStep === 10 || currentStep === 20 ? (
         <Stepper activeStep={activeStepIndex} alternativeLabel sx={{ mb: 4 }}>
           {activeSteps.map((label) => (<Step key={label}><StepLabel>{label}</StepLabel></Step>))}
         </Stepper>

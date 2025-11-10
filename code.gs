@@ -1,5 +1,5 @@
 // =========================================================================
-//         瑞宇水電 - 後端邏輯 (v9.7) - [終極品質保證]
+//         瑞宇水電 - 後端邏輯 (v10.0) - [新增工作日誌功能]
 // =========================================================================
 
 // =========================
@@ -16,6 +16,7 @@ function doGet(e) {
     case 'getUsers': data = getUsers(); break;
     case 'getProjects': data = getProjects(); break;
     case 'getItems': data = getItems(); break;
+    case 'getWorkLogs': data = getWorkLogs(); break; // **新增**
     default: data = { status: 'error', message: '無效的 GET action' };
   }
   if (callback) return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
@@ -36,6 +37,7 @@ function doPost(e) {
       case 'submitReturnRequest': response = submitReturnRequest(payload); break;
       case 'updateReturnStatus': response = updateReturnStatus(payload); break;
       case 'updateReturnItemStatus': response = updateReturnItemStatus(payload); break;
+      case 'submitWorkLog': response = submitWorkLog(payload); break; // **新增**
       default: response = createJsonResponse({ status: 'error', message: '無效的 POST action' });
     }
     // 舊的 callback 邏輯可能不再需要，但暫時保留以防萬一
@@ -71,7 +73,6 @@ function getRequests() {
   } catch (error) { Logger.log('getRequests Error: ' + error.toString()); return { status: 'error', message: '讀取請購單資料時發生錯誤: ' + error.toString() }; }
 }
 
-// **升級：讀取多品項退貨單**
 function getReturns() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("退貨單");
@@ -90,8 +91,51 @@ function getReturns() {
   } catch (error) { Logger.log('getReturns Error: ' + error.toString()); return { status: 'error', message: '讀取退貨單資料時發生錯誤: ' + error.toString() }; }
 }
 
-function getUsers() { return getSheetData("使用者", (row) => row[0]); }
-function getProjects() { return getSheetData("專案", (row) => row[0]); }
+// **新增：讀取工作日誌**
+function getWorkLogs() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
+    const values = sheet.getDataRange().getDisplayValues();
+    values.shift(); // 移除標頭
+    if (values.length === 0) return [];
+    const logs = values.map(row => ({
+      id: row[0],
+      timestamp: row[1],
+      date: row[2],
+      user: row[3],
+      project: row[4],
+      timeSlot: row[5],
+      distinction: row[6],
+      floor: row[7],
+      term: row[8],
+      isCompleted: row[9],
+      content: row[10]
+    }));
+    return logs.sort((a, b) => b.id - a.id); // 根據 ID 降序排序
+  } catch (error) {
+    Logger.log('getWorkLogs Error: ' + error.toString());
+    return { status: 'error', message: '讀取工作日誌資料時發生錯誤: ' + error.toString() };
+  }
+}
+
+// **更新：根據使用者要求讀取指定欄位**
+function getUsers() { 
+  return getSheetData("使用者", (row) => ({
+    applicant: row[0],
+    applicantPhone: row[1],
+    recipient: row[2],
+    recipientPhone: row[3]
+  })); 
+}
+
+// **更新：讀取專案名稱與期數**
+function getProjects() { 
+  return getSheetData("專案", (row) => ({
+    projectName: row[0],
+    term: row[1] 
+  })); 
+}
+
 function getItems() { return getSheetData("品項", (row) => ({ category: row[0], subcategory: row[1], imageUrl: row[2], thickness: row[3], size: row[4], unit: row[5] })); }
 
 // =========================
@@ -116,7 +160,6 @@ function submitRequest(payload) {
   } catch (error) { Logger.log('submitRequest Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '提交失敗: ' + error.toString() }); }
 }
 
-// **升級：多品項退貨**
 function submitReturnRequest(payload) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("退貨單");
@@ -133,7 +176,41 @@ function submitReturnRequest(payload) {
   } catch (error) { Logger.log('submitReturnRequest Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '提交退貨申請失敗: ' + error.toString() }); }
 }
 
-// **核心 Bug 修正：確保欄位索引正確**
+// **新增：提交工作日誌**
+function submitWorkLog(payload) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
+    const lock = LockService.getScriptLock();
+    lock.waitLock(15000);
+    
+    const newId = getNextId(sheet);
+    const timestamp = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+    
+    const newRow = [
+      newId,
+      timestamp,
+      payload.date,
+      payload.user,
+      payload.project,
+      payload.timeSlot,
+      payload.distinction,
+      payload.floor,
+      payload.term,
+      payload.isCompleted,
+      payload.content
+    ];
+    
+    sheet.appendRow(newRow);
+    
+    lock.releaseLock();
+    return createJsonResponse({ status: 'success', message: '工作日誌已成功送出', id: newId });
+  } catch (error) {
+    Logger.log('submitWorkLog Error: ' + error.toString());
+    return createJsonResponse({ status: 'error', message: '提交工作日誌失敗: ' + error.toString() });
+  }
+}
+
+
 function updateStatus(payload) {
   try {
     const { id, newStatus } = payload;
@@ -152,7 +229,6 @@ function updateStatus(payload) {
   } catch (error) { Logger.log('updateStatus Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '更新訂單狀態失敗: ' + error.toString() }); }
 }
 
-// **核心 Bug 修正：確保欄位索引正確**
 function updateItemStatus(payload) {
   try {
     const { orderId, itemName, newStatus } = payload;
@@ -169,7 +245,6 @@ function updateItemStatus(payload) {
   } catch (error) { Logger.log('updateItemStatus Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '更新品項狀態失敗: ' + error.toString() }); }
 }
 
-// **核心 Bug 修正：確保欄位索引正確**
 function updateReturnStatus(payload) {
   try {
     const { id, newStatus } = payload; // 這裡的 id 是指退貨單 ID

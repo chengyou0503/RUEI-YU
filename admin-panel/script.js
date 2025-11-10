@@ -1,11 +1,12 @@
 // =========================================================================
-//         瑞宇水電 - 後台腳本 (v4.3) - [終極品質保證]
+//         瑞宇水電 - 後台腳本 (v5.0) - [新增工作日誌]
 // =========================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM 元素 ---
     const requestsContainer = document.getElementById('requests-container');
     const returnsContainer = document.getElementById('returns-container');
+    const logsContainer = document.getElementById('logs-container'); // **新增**
     const refreshBtn = document.getElementById('refresh-btn');
     const autoRefreshCheckbox = document.getElementById('auto-refresh-checkbox');
     const timerBar = document.querySelector('.timer-bar');
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
 
     // --- 設定 ---
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyJgGCkZuDDff4zo5Vo-yAQUpOJipZvv8ich1r2X73EZHfHmwF6bg4UM71p-70ATQITsQ/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvbtdyosoUvb3UWGydYUa6FDzFvOKx7p-xAOsu2ZwJhftq5QWFjzzj_5VwAw9G2F_bJA/exec';
     const REFRESH_INTERVAL = 15000;
 
     // --- 狀態 ---
@@ -30,7 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         isLoading = true;
         if (isTriggeredByUser) resetTimer();
         
-        const container = currentTab === 'requests' ? requestsContainer : returnsContainer;
+        // **更新：根據當前頁籤選擇容器**
+        const container = 
+            currentTab === 'requests' ? requestsContainer :
+            currentTab === 'returns' ? returnsContainer :
+            logsContainer;
         
         if (!container.innerHTML || container.querySelector('.empty-state')) {
             container.innerHTML = `<div class="loading-placeholder"><div class="spinner"></div><p>正在載入資料...</p></div>`;
@@ -39,12 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            const action = currentTab === 'requests' ? 'getRequests' : 'getReturns';
-            const response = await jsonpRequest(action); // GET requests remain the same for now
+            // **更新：根據當前頁籤選擇 action**
+            const action = 
+                currentTab === 'requests' ? 'getRequests' :
+                currentTab === 'returns' ? 'getReturns' :
+                'getWorkLogs';
+
+            const response = await jsonpRequest(action);
             if (response.status === 'error') throw new Error(response.message);
             
+            // **更新：根據當前頁籤選擇渲染函式**
             if (currentTab === 'requests') renderRequests(response);
-            else renderReturns(response);
+            else if (currentTab === 'returns') renderReturns(response);
+            else if (currentTab === 'logs') renderLogs(response);
 
         } catch (error) {
             console.error(`載入 ${currentTab} 失敗:`, error);
@@ -111,14 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
     }
 
-    // **核心 Bug 修正：引入鎖定與回呼機制**
     async function updateOrderStatus(orderId, newStatus, buttonElement) {
         buttonElement.disabled = true;
         buttonElement.textContent = '處理中...';
         try {
             const response = await postRequest('updateStatus', { id: orderId, newStatus });
             if (response.status !== 'success') throw new Error(response.message);
-            // **成功後才刷新**
             loadData(true);
         } catch (error) {
             alert('更新訂單狀態失敗: ' + (error.message || '未知錯誤'));
@@ -127,17 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // **核心 Bug 修正：引入鎖定與回呼機制**
     async function updateItemStatus(orderId, itemName, newStatus, selectElement) {
         selectElement.disabled = true;
         try {
             const response = await postRequest('updateItemStatus', { orderId, itemName, newStatus });
             if (response.status !== 'success') throw new Error(response.message);
-            // **成功後才刷新**
             loadData(true);
         } catch (error) {
             alert('更新品項狀態失敗: ' + (error.message || '未知錯誤'));
-            // 失敗時重新載入以還原狀態
             loadData(true);
         }
     }
@@ -165,7 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderReturns(returns) {
         const pendingReturns = returns.filter(ret => ret.items.some(item => item.status !== '完成'));
         
-        // Toggle empty state class for centering
         if (pendingReturns.length === 0) {
             returnsContainer.classList.add('is-empty');
             returnsContainer.innerHTML = '<div class="empty-state"><p>目前沒有待處理的退貨單。</p></div>';
@@ -259,6 +265,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =========================
+    //      工作日誌 (Logs)
+    // =========================
+    function renderLogs(logs) {
+        if (logs.length === 0) {
+            logsContainer.innerHTML = '<div class="empty-state"><p>目前沒有工作日誌。</p></div>';
+            return;
+        }
+        logsContainer.innerHTML = logs.map(createLogCardHTML).join('');
+    }
+
+    function createLogCardHTML(log) {
+        return `
+            <div class="request-card">
+                <div class="card-header">
+                    <div class="header-info">
+                        <h2><span class="order-id">#${log.id}</span> - ${log.project}</h2>
+                        <p>記錄人: ${log.user} | 日期: ${log.date}</p>
+                    </div>
+                </div>
+                <div class="card-body-full">
+                    <div class="info-grid">
+                        <p><span class="label">時段:</span> ${log.timeSlot || '未填寫'}</p>
+                        <p><span class="label">區別:</span> ${log.distinction || '未填寫'}</p>
+                        <p><span class="label">樓層:</span> ${log.floor || '未填寫'}</p>
+                        <p><span class="label">期數:</span> ${log.term || '未填寫'}</p>
+                        <p><span class="label">當期完工:</span> ${log.isCompleted}</p>
+                    </div>
+                    <div class="log-content">
+                        <h3>工作內容</h3>
+                        <p>${log.content.replace(/\n/g, '<br>')}</p>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+
+    // =========================
     //      通用功能
     // =========================
     function handleTabClick(e) {
@@ -293,7 +336,6 @@ document.addEventListener('DOMContentLoaded', () => {
         timerBar.style.transform = 'scaleX(1)';
     }
 
-    // **修正：GET 請求使用 Fetch**
     async function jsonpRequest(action) {
         const url = `${APPS_SCRIPT_URL}?action=${action}`;
         try {
@@ -306,20 +348,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // **修正：POST 請求使用 Fetch**
     async function postRequest(action, payload) {
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Apps Script a-t-il besoin de ça? A vérifier.
+                mode: 'no-cors',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8',
                 },
                 body: JSON.stringify({ action, payload }),
             });
-            // NOTE: mode: 'no-cors' prevents reading the response, so we can't get a success/error message directly.
-            // We will rely on the fact that if fetch doesn't throw, the request was sent.
-            // For a more robust solution, the Apps Script would need to handle CORS preflight requests.
             return { status: 'success' }; // Assume success due to no-cors limitation
         } catch (error) {
             console.error("Fetch POST Error:", error);
