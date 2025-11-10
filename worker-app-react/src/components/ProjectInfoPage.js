@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Box, Typography, Select, MenuItem, Button, FormControl, InputLabel, TextField, Grid, Stack, Autocomplete } from '@mui/material';
 
 const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUsers }) => {
