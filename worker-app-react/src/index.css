@@ -8,3 +8,11 @@ h1, .MuiTypography-h4 {
     text-overflow: ellipsis; /* 如果還是太長，顯示省略號 */
     max-width: 100%;
 }
+
+/* 強制設定收件人欄位寬度 */
+.recipient-name-grid {
+    width: 75% !important;
+}
+.recipient-phone-grid {
+    width: 25% !important;
+}

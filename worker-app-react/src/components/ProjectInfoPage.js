@@ -80,7 +80,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
             <Grid item xs={12} sm={12}>
                 <TextField label="申請人電話" type="tel" fullWidth value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} />
             </Grid>
-             <Grid item xs={12} sm={10}>
+             <Grid item xs={12} sm={10} className="recipient-name-grid">
                 <Autocomplete
                   freeSolo
                   options={recipientOptions}
@@ -90,14 +90,14 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
-                      label="收件人姓名 (寬度測試)" 
+                      label="收件人姓名" 
                       error={!!errors.recipientName} 
                       helperText={errors.recipientName} 
                     />
                   )}
                 />
             </Grid>
-            <Grid item xs={12} sm={2}>
+            <Grid item xs={12} sm={2} className="recipient-phone-grid">
                 <TextField name="recipientPhone" label="收件人電話" type="tel" fullWidth value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} />
             </Grid>
         </Grid>
