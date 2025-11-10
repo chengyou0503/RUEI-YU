@@ -90,7 +90,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
-                      label="收件人姓名" 
+                      label="收件人姓名 (寬度測試)" 
                       error={!!errors.recipientName} 
                       helperText={errors.recipientName} 
                     />
