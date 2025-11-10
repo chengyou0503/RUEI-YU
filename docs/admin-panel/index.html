@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>瑞宇水電 - 管理後台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>管理後台</h1>
+            <div class="header-controls">
+                <div id="loading-indicator" class="loading-indicator">
+                    <div class="spinner-small"></div>
+                    <span>更新中...</span>
+                </div>
+                <button id="refresh-btn" class="button-secondary">
+                    <span class="icon">🔄</span>
+                    <span class="btn-text">手動刷新</span>
+                </button>
+                <div class="auto-refresh-toggle">
+                    <input type="checkbox" id="auto-refresh-checkbox" checked>
+                    <label for="auto-refresh-checkbox">自動刷新</label>
+                    <div class="timer-bar-container">
+                        <div class="timer-bar"></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <nav class="tabs">
+            <button class="tab-link active" data-tab="requests">請購單管理</button>
+            <button class="tab-link" data-tab="returns">退貨單管理</button>
+            <button class="tab-link" data-tab="logs">工作日誌</button>
+        </nav>
+
+        <main>
+            <div id="requests-container" class="tab-content active">
+                <!-- 請購單內容 -->
+            </div>
+            <div id="returns-container" class="tab-content">
+                <!-- 退貨單內容 -->
+            </div>
+            <div id="logs-container" class="tab-content">
+                <!-- 工作日誌內容 -->
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        © 2025 Lawrence. All Rights Reserved.
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
