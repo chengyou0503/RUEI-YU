@@ -21,12 +21,10 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   }, [projects]);
 
   const termOptions = useMemo(() => {
-    if (!projects || !logData.project) return [];
-    const terms = projects
-      .filter(p => p.projectName === logData.project && p.term)
-      .map(p => p.term);
-    return [...new Set(terms)];
-  }, [projects, logData.project]);
+    if (!projects) return [];
+    const allTerms = projects.map(p => p.term).filter(Boolean); // 取得所有期數並過濾掉空值
+    return [...new Set(allTerms)]; // 回傳不重複的期數列表
+  }, [projects]);
 
   // **新增：生成時間選項**
   const generateTimeOptions = () => {
