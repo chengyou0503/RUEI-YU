@@ -5,7 +5,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   const [logData, setLogData] = useState({
     date: new Date().toISOString().split('T')[0], // Default to today
     project: '',
-    timeSlot: '',
+    startTime: '', // **修改：開始時間**
+    endTime: '',   // **修改：結束時間**
     distinction: '',
     floor: '',
     term: '',
@@ -27,6 +28,20 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     return [...new Set(terms)];
   }, [projects, logData.project]);
 
+  // **新增：生成時間選項**
+  const generateTimeOptions = () => {
+    const times = [];
+    for (let h = 8; h <= 18; h++) {
+      for (let m = 0; m < 60; m += 30) {
+        const hour = String(h).padStart(2, '0');
+        const minute = String(m).padStart(2, '0');
+        times.push(`${hour}:${minute}`);
+      }
+    }
+    return times;
+  };
+  const timeOptions = useMemo(() => generateTimeOptions(), []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLogData(prev => ({ ...prev, [name]: value }));
@@ -43,6 +58,11 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     const newErrors = {};
     if (!logData.date) newErrors.date = '必須選擇日期';
     if (!logData.project) newErrors.project = '必須選擇案場';
+    if (!logData.startTime) newErrors.startTime = '必須選擇開始時間'; // **新增驗證**
+    if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';     // **新增驗證**
+    if (logData.startTime && logData.endTime && logData.startTime >= logData.endTime) {
+      newErrors.endTime = '結束時間必須晚於開始時間';
+    }
     if (!logData.content.trim()) newErrors.content = '必須填寫工作內容';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -50,7 +70,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
 
   const handleSubmit = () => {
     if (validate()) {
-      onSubmit({ ...logData, user });
+      const timeSlot = `${logData.startTime}-${logData.endTime}`; // **組合時段字串**
+      onSubmit({ ...logData, user, timeSlot });
     }
   };
 
@@ -83,14 +104,22 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           </Select>
         </FormControl>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-          <FormControl fullWidth>
-            <InputLabel>時段</InputLabel>
-            <Select name="timeSlot" value={logData.timeSlot} label="時段" onChange={handleChange}>
-              <MenuItem value="08:00-12:00 (上午)">08:00-12:00 (上午)</MenuItem>
-              <MenuItem value="13:00-17:00 (下午)">13:00-17:00 (下午)</MenuItem>
-              <MenuItem value="08:00-17:00 (全日)">08:00-17:00 (全日)</MenuItem>
+          <FormControl fullWidth error={!!errors.startTime}>
+            <InputLabel>開始時間</InputLabel>
+            <Select name="startTime" value={logData.startTime} label="開始時間" onChange={handleChange}>
+              {timeOptions.map((time, i) => <MenuItem key={i} value={time}>{time}</MenuItem>)}
             </Select>
+            {errors.startTime && <Typography color="error" variant="caption">{errors.startTime}</Typography>}
           </FormControl>
+          <FormControl fullWidth error={!!errors.endTime}>
+            <InputLabel>結束時間</InputLabel>
+            <Select name="endTime" value={logData.endTime} label="結束時間" onChange={handleChange}>
+              {timeOptions.map((time, i) => <MenuItem key={i} value={time}>{time}</MenuItem>)}
+            </Select>
+            {errors.endTime && <Typography color="error" variant="caption">{errors.endTime}</Typography>}
+          </FormControl>
+        </Stack>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <TextField name="distinction" label="區別 (例如: A棟)" fullWidth value={logData.distinction} onChange={handleChange} />
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
