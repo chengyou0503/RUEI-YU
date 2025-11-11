@@ -13,7 +13,7 @@ import ReturnSuccessPage from './components/ReturnSuccessPage';
 import ShoppingCart from './components/ShoppingCart';
 import WorkLogPage from './components/WorkLogPage'; // **新增**
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-yl_bd_6ufg9wbk6WluTmCMNtbCw357kUGmPdS0-k8bw2mVGvD3z_ezDOxp6YXoa1dg/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQs_vTW2s2L-SyDhu3TRjhMAJiEQItmdR8a60GztLjUP4ZOLvYMQgbD5EgdRSRvgAV/exec";
 const requestSteps = ['身份驗證', '主選單', '專案資訊', '選擇品項', '預覽與確認'];
 const returnSteps = ['身份驗證', '主選單', '退貨申請'];
 const logSteps = ['身份驗證', '主選單', '填寫日誌']; // **新增**
