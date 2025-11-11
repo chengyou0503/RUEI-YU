@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //      請購單 (Requests)
     // =========================
     function renderRequests(requests) {
-        const pendingRequests = requests.filter(req => req.items.some(item => item.status !== '完成'));
+        const pendingRequests = requests.filter(req => req.items && req.items.some(item => item.status !== '完成'));
         if (pendingRequests.length === 0) {
             requestsContainer.innerHTML = '<div class="empty-state"><p>目前沒有待處理的請購單。</p></div>';
             return;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //      退貨單 (Returns)
     // =========================
     function renderReturns(returns) {
-        const pendingReturns = returns.filter(ret => ret.items.some(item => item.status !== '完成'));
+        const pendingReturns = returns.filter(ret => ret.items && ret.items.some(item => item.status !== '完成'));
         
         if (pendingReturns.length === 0) {
             returnsContainer.classList.add('is-empty');
