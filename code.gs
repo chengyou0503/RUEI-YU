@@ -30,11 +30,11 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  logToSheet('doPost', { message: "函式被呼叫", postData: e.postData.contents });
+  logToSheet('doPost', { message: "函式被呼叫", eventObject: e });
   try {
-    const contents = JSON.parse(e.postData.contents);
-    const action = contents.action;
-    const payload = contents.payload;
+    // 從 e.parameter 讀取 action 和 payload
+    const action = e.parameter.action;
+    const payload = JSON.parse(e.parameter.payload);
     
     let response;
     switch(action) {
@@ -50,7 +50,7 @@ function doPost(e) {
     }
     return response;
   } catch (error) {
-    logToSheet('doPost CATCH', { error: error.toString(), stack: error.stack, postData: e.postData ? e.postData.contents : null });
+    logToSheet('doPost CATCH', { error: error.toString(), stack: error.stack, postData: e.postData ? e.postData.contents : null, parameter: e.parameter });
     return createJsonResponse({ status: 'error', message: 'POST 請求處理失敗: ' + error.toString() });
   }
 }
