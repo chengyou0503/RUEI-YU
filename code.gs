@@ -100,6 +100,7 @@ function getWorkLogs() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
     const values = sheet.getDataRange().getDisplayValues();
+    Logger.log("getWorkLogs 讀取到的原始 values:", JSON.stringify(values)); // 植入黑盒子
     values.shift(); 
     if (values.length === 0) return [];
     const logs = values.map(row => ({
