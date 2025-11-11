@@ -283,6 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h2><span class="order-id">#${log.id}</span> - ${log.project}</h2>
                         <p>記錄人: ${log.user} | 日期: ${log.date}</p>
                     </div>
+                    <div class="header-actions">
+                        ${log.folderUrl ? `<a href="${log.folderUrl}" target="_blank" class="button-secondary">查看照片資料夾</a>` : ''}
+                    </div>
                 </div>
                 <div class="card-body-full">
                     <div class="info-grid">

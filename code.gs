@@ -1,5 +1,5 @@
 // =========================================================================
-//         瑞宇水電 - 後端邏輯 (v11.0) - [新增照片上傳功能]
+//         瑞宇水電 - 後端邏輯 (v12.0) - [新增照片資料夾連結功能]
 // =========================================================================
 
 // =========================
@@ -38,7 +38,7 @@ function doPost(e) {
       case 'updateReturnStatus': response = updateReturnStatus(payload); break;
       case 'updateReturnItemStatus': response = updateReturnItemStatus(payload); break;
       case 'submitWorkLog': response = submitWorkLog(payload); break;
-      case 'uploadImage': response = uploadImage(payload); break; // **新增**
+      case 'uploadImage': response = uploadImage(payload); break;
       default: response = createJsonResponse({ status: 'error', message: '無效的 POST action' });
     }
     return response;
@@ -106,7 +106,8 @@ function getWorkLogs() {
       term: row[8],
       isCompleted: row[9],
       content: row[10],
-      photoUrls: row[11] ? row[11].split(',').map(url => url.trim()) : [] // **新增**
+      photoUrls: row[11] ? row[11].split(',').map(url => url.trim()) : [],
+      folderUrl: row[12] || '' // **新增**
     }));
     return logs.sort((a, b) => b.id - a.id);
   } catch (error) {
@@ -192,7 +193,8 @@ function submitWorkLog(payload) {
       payload.term,
       payload.isCompleted,
       payload.content,
-      payload.photoUrls ? payload.photoUrls.join(', ') : '' // **新增**
+      payload.photoUrls ? payload.photoUrls.join(', ') : '',
+      payload.folderUrl || '' // **新增**
     ];
     
     sheet.appendRow(newRow);
@@ -205,20 +207,24 @@ function submitWorkLog(payload) {
   }
 }
 
-// **新增：圖片上傳函式**
 function uploadImage(payload) {
   try {
     const { fileData, fileName, date } = payload;
     const decodedData = Utilities.base64Decode(fileData.split(',')[1]);
     const blob = Utilities.newBlob(decodedData, MimeType.JPEG, fileName);
 
-    const rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), "工作日誌照片");
+    const rootFolderId = "1i3mr6IRKwxJcp-qOV3Y9MUmmUTxbqiC3";
+    const rootFolder = DriveApp.getFolderById(rootFolderId);
     const dateFolder = getOrCreateFolder(rootFolder, date);
 
     const file = dateFolder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     
-    return createJsonResponse({ status: 'success', url: file.getUrl() });
+    return createJsonResponse({ 
+      status: 'success', 
+      url: file.getUrl(),
+      folderUrl: dateFolder.getUrl() // **新增**
+    });
   } catch (error) {
     Logger.log('uploadImage Error: ' + error.toString());
     return createJsonResponse({ status: 'error', message: '圖片上傳失敗: ' + error.toString() });
