@@ -1,13 +1,13 @@
 import React from 'react';
-import { Box, Typography, Button, List, ListItem, ListItemText, Divider, Grid, CircularProgress, Paper } from '@mui/material';
+import { Box, Typography, Button, List, ListItem, ListItemText, Divider, Grid, CircularProgress, Paper, Stack } from '@mui/material';
 
-const InfoItem = ({ primary, secondary }) => (
-  <Grid item xs={12} sm={6}>
-    <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
-      <Typography variant="subtitle2" color="text.secondary">{primary}</Typography>
-      <Typography variant="body1" fontWeight="500">{secondary || '未填寫'}</Typography>
-    </Paper>
-  </Grid>
+const InfoListItem = ({ primary, secondary }) => (
+  <>
+    <ListItem>
+      <ListItemText primary={primary} secondary={secondary || '未填寫'} />
+    </ListItem>
+    <Divider component="li" />
+  </>
 );
 
 const PreviewPage = ({ formData, navigateTo, onSubmit, isSubmitting }) => {
@@ -17,15 +17,17 @@ const PreviewPage = ({ formData, navigateTo, onSubmit, isSubmitting }) => {
     <Box>
       <Typography variant="h5" component="h2" gutterBottom align="center">預覽與確認</Typography>
       
-      <Grid container spacing={2} sx={{ mt: 3 }}>
-        <InfoItem primary="請購人員" secondary={user} />
-        <InfoItem primary="專案名稱" secondary={project} />
-        <InfoItem primary="送貨地點" secondary={deliveryAddress} />
-        <InfoItem primary="送貨日期" secondary={deliveryDate} />
-        <InfoItem primary="申請人電話" secondary={userPhone} />
-        <InfoItem primary="收件人姓名" secondary={recipientName} />
-        <InfoItem primary="收件人電話" secondary={recipientPhone} />
-      </Grid>
+      <Paper variant="outlined" sx={{ mt: 3 }}>
+        <List disablePadding>
+          <InfoListItem primary="請購人員" secondary={user} />
+          <InfoListItem primary="專案名稱" secondary={project} />
+          <InfoListItem primary="送貨地點" secondary={deliveryAddress} />
+          <InfoListItem primary="送貨日期" secondary={deliveryDate} />
+          <InfoListItem primary="申請人電話" secondary={userPhone} />
+          <InfoListItem primary="收件人姓名" secondary={recipientName} />
+          <InfoListItem primary="收件人電話" secondary={recipientPhone} />
+        </List>
+      </Paper>
 
       <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>請購品項</Typography>
       <Paper variant="outlined" sx={{ maxHeight: '30vh', overflowY: 'auto' }}>
@@ -49,8 +51,18 @@ const PreviewPage = ({ formData, navigateTo, onSubmit, isSubmitting }) => {
         </List>
       </Paper>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 5 }}>
-        <Button variant="outlined" onClick={() => navigateTo(3)} disabled={isSubmitting}>
+      <Stack 
+        direction={{ xs: 'column-reverse', sm: 'row' }} 
+        spacing={2} 
+        justifyContent="space-between" 
+        sx={{ mt: 5 }}
+      >
+        <Button 
+          variant="outlined" 
+          onClick={() => navigateTo(3)} 
+          disabled={isSubmitting}
+          fullWidth={{ xs: true, sm: false }}
+        >
           返回修改
         </Button>
         <Button
@@ -60,10 +72,11 @@ const PreviewPage = ({ formData, navigateTo, onSubmit, isSubmitting }) => {
           onClick={onSubmit}
           disabled={isSubmitting || cart.length === 0}
           startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
+          fullWidth={{ xs: true, sm: false }}
         >
           {isSubmitting ? '傳送中...' : '確認送出'}
         </Button>
-      </Box>
+      </Stack>
     </Box>
   );
 };

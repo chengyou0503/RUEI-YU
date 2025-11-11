@@ -178,8 +178,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-           <Autocomplete freeSolo fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} disabled={!logData.project} renderInput={(params) => <TextField {...params} label="期數" error={!!errors.term} helperText={errors.term} />} />
-           <Autocomplete freeSolo fullWidth options={engineeringItemOptions} value={logData.engineeringItem} onChange={handleEngineeringItemChange} onInputChange={handleEngineeringItemChange} disabled={!logData.term} renderInput={(params) => <TextField {...params} label="工程項目" error={!!errors.engineeringItem} helperText={errors.engineeringItem} />} />
+           <Autocomplete fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} disabled={!logData.project} renderInput={(params) => <TextField {...params} label="期數" error={!!errors.term} helperText={errors.term} />} />
+           <Autocomplete fullWidth options={engineeringItemOptions} value={logData.engineeringItem} onChange={handleEngineeringItemChange} onInputChange={handleEngineeringItemChange} disabled={!logData.term} renderInput={(params) => <TextField {...params} label="工程項目" error={!!errors.engineeringItem} helperText={errors.engineeringItem} />} />
         </Stack>
         <FormControl fullWidth>
           <InputLabel>當期是否完工</InputLabel>
