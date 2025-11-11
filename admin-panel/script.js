@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="request-card">
                 <div class="card-header">
                     <div class="header-info">
-                        <h2><span class="order-id">#${log.id}</span> - ${log.project}</h2>
+                        <h2><span class="order-id">#${log.id}</span> - 案場名稱：${log.project}</h2>
                         <p>記錄人: ${log.user} | 日期: ${log.date}</p>
                     </div>
                     <div class="header-actions">
