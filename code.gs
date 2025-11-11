@@ -201,7 +201,7 @@ function submitWorkLog(payload) {
       payload.distinction,
       payload.floor,
       payload.term,
-      payload.engineeringItem, // 新增
+      payload.engineeringItem || '', // 確保即使前端沒傳，也有預設值
       payload.isCompleted,
       payload.content,
       payload.photoUrls ? payload.photoUrls.join(', ') : '',
