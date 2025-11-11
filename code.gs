@@ -283,7 +283,9 @@ function updateStatus(payload) {
   }
 }
 
-function updateItemStatus(payload) {
+function updateItem-Status(payload) {
+  // 在函式開頭就記錄傳入的 payload，以便偵錯
+  logToSheet('updateItemStatus Start', { message: "函式開始執行", payload: payload });
   try {
     const { orderId, itemName, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
@@ -310,12 +312,14 @@ function updateItemStatus(payload) {
     }
 
     if (updated) {
+      logToSheet('updateItemStatus Success', { message: "成功找到並更新品項", payload: payload });
       return createJsonResponse({ status: 'success', message: '品項狀態已成功更新' });
     } else {
       // 如果迴圈跑完都沒有找到任何匹配，記錄下來並回傳錯誤
       logToSheet('updateItemStatus Failure', { 
         message: "找不到匹配的品項來更新", 
-        payload: payload
+        payload: payload,
+        sheetDataPreview: data.slice(1, 6) // 記錄工作表前5筆數據以供參考
       });
       return createJsonResponse({ status: 'error', message: `在訂單 ${orderId} 中找不到品項: '${itemName}'` });
     }
