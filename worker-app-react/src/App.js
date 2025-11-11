@@ -174,7 +174,7 @@ function App() {
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ mb: 4 }}>
-        瑞宇水電 - 工作系統 <Box component="span" sx={{ color: 'red' }}>(v3-debug)</Box>
+        瑞宇水電 - 工作系統 <Box component="span" sx={{ color: 'red' }}>(v4-debug)</Box>
       </Typography>
       {currentStep < 5 || currentStep === 10 || currentStep === 20 ? (
         <Stepper activeStep={activeStepIndex} alternativeLabel sx={{ mb: 4 }}>

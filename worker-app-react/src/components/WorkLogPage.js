@@ -3,6 +3,7 @@ import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Tex
 import { PhotoCamera, Delete } from '@mui/icons-material';
 
 const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => {
+  console.log("WorkLogPage 接收到的 projects 數據:", projects);
   const [logData, setLogData] = useState({
     date: new Date().toISOString().split('T')[0],
     project: '',
