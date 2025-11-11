@@ -11,8 +11,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     distinction: '',
     floor: '',
     term: '',
-    floor: '',
-    term: '',
     isCompleted: '否',
     content: '',
     photoUrls: [],
