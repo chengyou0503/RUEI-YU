@@ -109,7 +109,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
                 method: 'POST',
                 body: JSON.stringify({ action: 'uploadImage', payload }),
               });
-              const result = await response.json();
+              const result = await response.text().then(text => JSON.parse(text)); // **重要：修正 response 解析方式**
 
               if (result.status === 'success') {
                 uploadedUrls.push(result.url);
