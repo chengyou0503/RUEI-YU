@@ -283,7 +283,7 @@ function updateStatus(payload) {
   }
 }
 
-function updateItem-Status(payload) {
+function updateItemStatus(payload) {
   // 在函式開頭就記錄傳入的 payload，以便偵錯
   logToSheet('updateItemStatus Start', { message: "函式開始執行", payload: payload });
   try {
