@@ -19,9 +19,8 @@ jobs:
 
       - name: Install Dependencies and Build
         run: |
-          cd worker-app-react
-          npm install
-          npm run build
+          npm install --prefix worker-app-react
+          npm run build --prefix worker-app-react
         env:
           CI: false
 
