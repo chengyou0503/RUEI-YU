@@ -61,7 +61,15 @@ function getRequests() {
     const requestsById = values.reduce((acc, row) => {
       const id = row[0];
       if (!id) return acc;
-      const item = { name: row[9], quantity: row[10], unit: row[11], status: row[12] || '待處理' };
+      const item = { 
+        category: row[9], 
+        subcategory: row[10], 
+        thickness: row[11], 
+        size: row[12], 
+        quantity: row[13], 
+        unit: row[14], 
+        status: row[15] || '待處理' 
+      };
       if (!acc[id]) acc[id] = { id: id, timestamp: row[1], project: row[2], deliveryAddress: row[3], deliveryDate: row[4], user: row[5], userPhone: row[6], recipientName: row[7], recipientPhone: row[8], items: [] };
       acc[id].items.push(item);
       return acc;
@@ -104,10 +112,11 @@ function getWorkLogs() {
       distinction: row[6],
       floor: row[7],
       term: row[8],
-      isCompleted: row[9],
-      content: row[10],
-      photoUrls: row[11] ? row[11].split(',').map(url => url.trim()) : [],
-      folderUrl: row[12] || '' // **新增**
+      engineeringItem: row[9], // 新增
+      isCompleted: row[10],
+      content: row[11],
+      photoUrls: row[12] ? row[12].split(',').map(url => url.trim()) : [],
+      folderUrl: row[13] || ''
     }));
     return logs.sort((a, b) => b.id - a.id);
   } catch (error) {
@@ -128,7 +137,8 @@ function getUsers() {
 function getProjects() { 
   return getSheetData("專案", (row) => ({
     projectName: row[0],
-    term: row[1] 
+    term: row[1],
+    engineeringItem: row[2] // 新增
   })); 
 }
 
@@ -148,7 +158,7 @@ function submitRequest(payload) {
     const newRows = payload.items.map(item => {
       const userPhone = `'${payload.userPhone}`;
       const recipientPhone = `'${payload.recipientPhone}`;
-      return [ newId, timestamp, payload.project, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.subcategory, item.quantity, item.unit, "待處理" ];
+      return [ newId, timestamp, payload.project, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
     });
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
     lock.releaseLock();
@@ -191,10 +201,11 @@ function submitWorkLog(payload) {
       payload.distinction,
       payload.floor,
       payload.term,
+      payload.engineeringItem, // 新增
       payload.isCompleted,
       payload.content,
       payload.photoUrls ? payload.photoUrls.join(', ') : '',
-      payload.folderUrl || '' // **新增**
+      payload.folderUrl || ''
     ];
     
     sheet.appendRow(newRow);
@@ -236,7 +247,7 @@ function updateStatus(payload) {
     const { id, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
-    const statusColumn = 13; // M 欄
+    const statusColumn = 16; // P 欄
     let updated = false;
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] == id) {
@@ -254,7 +265,7 @@ function updateItemStatus(payload) {
     const { orderId, itemName, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
-    const idCol = 0, nameCol = 9, statusCol = 13; 
+    const idCol = 0, nameCol = 10, statusCol = 16; // nameCol 改為 10 (小分類), statusCol 改為 16
     for (let i = 1; i < data.length; i++) {
       if (data[i][idCol] == orderId && data[i][nameCol] == itemName) {
         sheet.getRange(i + 1, statusCol).setValue(newStatus);

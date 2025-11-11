@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
 
     // --- 設定 ---
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzvbtdyosoUvb3UWGydYUa6FDzFvOKx7p-xAOsu2ZwJhftq5QWFjzzj_5VwAw9G2F_bJA/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw2d-L_g43BJ2bUbDUQkbXSq5b09Fd-36J223Z1NBghYkhDnfqdzNDax_XeCJ766wQ0Xg/exec';
     const REFRESH_INTERVAL = 15000;
 
     // --- 狀態 ---
@@ -102,14 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="info-block">
                         <h3>單一品項狀態管理</h3>
                         <table class="items-table">
-                            <thead><tr><th>品項名稱</th><th>數量</th><th>狀態</th></tr></thead>
+                            <thead><tr><th>大分類</th><th>小分類</th><th>厚度</th><th>尺寸</th><th>數量</th><th>狀態</th></tr></thead>
                             <tbody>
                                 ${request.items.map(item => `
                                     <tr class="status-${item.status}">
-                                        <td>${item.name}</td>
+                                        <td>${item.category}</td>
+                                        <td>${item.subcategory}</td>
+                                        <td>${item.thickness}</td>
+                                        <td>${item.size}</td>
                                         <td>${item.quantity} ${item.unit}</td>
                                         <td>
-                                            <select class="status-select" data-order-id="${request.id}" data-item-name="${item.name}">
+                                            <select class="status-select" data-order-id="${request.id}" data-item-name="${item.subcategory}">
                                                 <option value="待處理" ${item.status === '待處理' ? 'selected' : ''}>待處理</option>
                                                 <option value="完成" ${item.status === '完成' ? 'selected' : ''}>完成</option>
                                             </select>
@@ -293,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p><span class="label">區別:</span> ${log.distinction || '未填寫'}</p>
                         <p><span class="label">樓層:</span> ${log.floor || '未填寫'}</p>
                         <p><span class="label">期數:</span> ${log.term || '未填寫'}</p>
+                        <p><span class="label">工程項目:</span> ${log.engineeringItem || '未填寫'}</p>
                         <p><span class="label">當期完工:</span> ${log.isCompleted}</p>
                     </div>
                     <div class="log-content">

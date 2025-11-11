@@ -11,13 +11,13 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     distinction: '',
     floor: '',
     term: '',
+    engineeringItem: '',
     isCompleted: '否',
     content: '',
-    photoUrls: [], // **新增：儲存照片 URL**
+    photoUrls: [],
   });
   const [errors, setErrors] = useState({});
 
-  // **新增：照片上傳相關狀態**
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -28,10 +28,22 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   }, [projects]);
 
   const termOptions = useMemo(() => {
-    if (!projects) return [];
-    const allTerms = projects.map(p => p.term).filter(Boolean);
-    return [...new Set(allTerms)];
-  }, [projects]);
+    if (!logData.project || !projects) return [];
+    const relatedTerms = projects
+      .filter(p => p.projectName === logData.project)
+      .map(p => p.term)
+      .filter(Boolean);
+    return [...new Set(relatedTerms)];
+  }, [logData.project, projects]);
+
+  const engineeringItemOptions = useMemo(() => {
+    if (!logData.project || !logData.term || !projects) return [];
+    const relatedItems = projects
+      .filter(p => p.projectName === logData.project && p.term === logData.term)
+      .map(p => p.engineeringItem)
+      .filter(Boolean);
+    return [...new Set(relatedItems)];
+  }, [logData.project, logData.term, projects]);
 
   const generateTimeOptions = () => {
     const times = [];
@@ -52,14 +64,17 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   };
 
   const handleProjectChange = (event, newValue) => {
-    setLogData(prev => ({ ...prev, project: newValue || '', term: '' }));
+    setLogData(prev => ({ ...prev, project: newValue || '', term: '', engineeringItem: '' }));
   };
 
   const handleTermChange = (event, newValue) => {
-    setLogData(prev => ({ ...prev, term: newValue || '' }));
+    setLogData(prev => ({ ...prev, term: newValue || '', engineeringItem: '' }));
+  };
+  
+  const handleEngineeringItemChange = (event, newValue) => {
+    setLogData(prev => ({ ...prev, engineeringItem: newValue || '' }));
   };
 
-  // **新增：處理檔案選擇**
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files);
     const fileObjects = files.map(file => ({
@@ -69,7 +84,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     setSelectedFiles(prev => [...prev, ...fileObjects]);
   };
 
-  // **新增：處理照片上傳**
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
     setIsUploading(true);
@@ -88,15 +102,11 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
               fileName: file.name,
               date: logData.date,
             };
-            // **使用 fetch 進行上傳**
             const response = await fetch("https://script.google.com/macros/s/AKfycbzvbtdyosoUvb3UWGydYUa6FDzFvOKx7p-xAOsu2ZwJhftq5QWFjzzj_5VwAw9G2F_bJA/exec", {
               method: 'POST',
               mode: 'no-cors',
               body: JSON.stringify({ action: 'uploadImage', payload }),
             });
-            
-            // 這裡我們無法直接獲取 URL，所以先假設成功
-            // 真正儲存 URL 的步驟將在提交日誌後完成
             setUploadProgress(((i + 1) / selectedFiles.length) * 100);
             resolve();
           } catch (error) {
@@ -107,9 +117,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
       });
     }
     
-    // 暫時不清空 selectedFiles，讓使用者可以看到預覽
-    // setLogData(prev => ({ ...prev, photoUrls: [...prev.photoUrls, ...uploadedUrls] }));
-    // setSelectedFiles([]);
     setIsUploading(false);
     alert('所有照片已上傳完畢，請點擊「提交日誌」以儲存。');
   };
@@ -122,6 +129,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     const newErrors = {};
     if (!logData.date) newErrors.date = '必須選擇日期';
     if (!logData.project) newErrors.project = '必須選擇案場';
+    if (!logData.term) newErrors.term = '必須選擇期數';
+    if (!logData.engineeringItem) newErrors.engineeringItem = '必須選擇工程項目';
     if (!logData.startTime) newErrors.startTime = '必須選擇開始時間';
     if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';
     if (logData.startTime && logData.endTime && logData.startTime >= logData.endTime) {
@@ -169,18 +178,18 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-           <Autocomplete freeSolo fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} renderInput={(params) => <TextField {...params} label="期數" />} />
-          <FormControl fullWidth>
-            <InputLabel>當期是否完工</InputLabel>
-            <Select name="isCompleted" value={logData.isCompleted} label="當期是否完工" onChange={handleChange}>
-              <MenuItem value="是">是</MenuItem>
-              <MenuItem value="否">否</MenuItem>
-            </Select>
-          </FormControl>
+           <Autocomplete freeSolo fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} disabled={!logData.project} renderInput={(params) => <TextField {...params} label="期數" error={!!errors.term} helperText={errors.term} />} />
+           <Autocomplete freeSolo fullWidth options={engineeringItemOptions} value={logData.engineeringItem} onChange={handleEngineeringItemChange} onInputChange={handleEngineeringItemChange} disabled={!logData.term} renderInput={(params) => <TextField {...params} label="工程項目" error={!!errors.engineeringItem} helperText={errors.engineeringItem} />} />
         </Stack>
+        <FormControl fullWidth>
+          <InputLabel>當期是否完工</InputLabel>
+          <Select name="isCompleted" value={logData.isCompleted} label="當期是否完工" onChange={handleChange}>
+            <MenuItem value="是">是</MenuItem>
+            <MenuItem value="否">否</MenuItem>
+          </Select>
+        </FormControl>
         <TextField name="content" label="工作內容" multiline rows={4} fullWidth value={logData.content} onChange={handleChange} error={!!errors.content} helperText={errors.content} />
         
-        {/* 照片上傳區塊 */}
         <Box>
           <Typography variant="h6" gutterBottom>相關照片</Typography>
           <Button variant="outlined" component="label" startIcon={<PhotoCamera />} disabled={isUploading}>

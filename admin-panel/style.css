@@ -326,6 +326,12 @@ footer {
     margin-top: 24px;
 }
 
+@media (max-width: 992px) {
+    .info-block {
+        overflow-x: auto; /* 讓表格可以在小螢幕上滾動 */
+    }
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 16px;

@@ -77,10 +77,10 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
         <TextField name="deliveryDate" label="送貨日期" type="date" fullWidth value={data.deliveryDate} onChange={handleChange} error={!!errors.deliveryDate} helperText={errors.deliveryDate} InputLabelProps={{ shrink: true }} />
 
         <Grid container spacing={2}>
-            <Grid item xs={12} sm={12}>
+            <Grid item xs={12}>
                 <TextField label="申請人電話" type="tel" fullWidth value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} />
             </Grid>
-             <Grid item xs={12} sm={6} className="recipient-name-grid">
+             <Grid item xs={12} sm={6}>
                 <Autocomplete
                   freeSolo
                   options={recipientOptions}
@@ -97,7 +97,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
                   )}
                 />
             </Grid>
-            <Grid item xs={12} sm={6} className="recipient-phone-grid">
+            <Grid item xs={12} sm={6}>
                 <TextField name="recipientPhone" label="收件人電話" type="tel" fullWidth value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} />
             </Grid>
         </Grid>
