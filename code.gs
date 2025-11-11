@@ -288,23 +288,37 @@ function updateItemStatus(payload) {
     const { orderId, itemName, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
-    // 使用 0-based 索引
+    
     const idCol = 0;       // A 欄
     const nameCol = 10;      // K 欄 (小分類)
     const statusCol = 15;    // P 欄 (品項狀態)
 
+    let updated = false; // 用於追蹤是否成功更新
+
     for (let i = 1; i < data.length; i++) {
-      // 進行比對
-      if (data[i][idCol] == orderId && data[i][nameCol] == itemName) {
+      // 防禦性程式設計：移除字串前後可能存在的空格再進行比對
+      const sheetItemName = data[i][nameCol] ? data[i][nameCol].toString().trim() : '';
+      const payloadItemName = itemName ? itemName.toString().trim() : '';
+
+      if (data[i][idCol] == orderId && sheetItemName == payloadItemName) {
         // 更新儲存格時，使用 1-based 索引
         sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
-        // 找到並更新後，可以選擇不再繼續迴圈
-        // return createJsonResponse({ status: 'success' }); 
-        // 為了確保所有符合條件的品項都被更新，暫時不 return，讓迴圈跑完
+        updated = true;
+        // 假設訂單中的品項名稱是唯一的，找到後可以提前結束迴圈以提高效率
+        // break; 
       }
     }
-    // 迴圈跑完後，直接回傳成功，因為即使沒找到匹配項，操作本身也沒報錯
-    return createJsonResponse({ status: 'success', message: '更新操作已完成' });
+
+    if (updated) {
+      return createJsonResponse({ status: 'success', message: '品項狀態已成功更新' });
+    } else {
+      // 如果迴圈跑完都沒有找到任何匹配，記錄下來並回傳錯誤
+      logToSheet('updateItemStatus Failure', { 
+        message: "找不到匹配的品項來更新", 
+        payload: payload
+      });
+      return createJsonResponse({ status: 'error', message: `在訂單 ${orderId} 中找不到品項: '${itemName}'` });
+    }
 
   } catch (error) { 
     logToSheet('updateItemStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
