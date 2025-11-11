@@ -3,7 +3,6 @@ import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, Tex
 import { PhotoCamera, Delete } from '@mui/icons-material';
 
 const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => {
-  console.log("WorkLogPage 接收到的 projects 數據:", projects);
   const [logData, setLogData] = useState({
     date: new Date().toISOString().split('T')[0],
     project: '',
@@ -141,11 +140,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
       }
     };
   
-    console.log("畫面重新渲染，目前的 logData.project 是:", logData.project);
-  
-    return (
-      <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 2 }}>
-        <Typography variant="h5" component="h2" gutterBottom align="center">
+      return (
+        <Paper elevation={3} sx={{ p: { xs: 2, sm: 4 }, borderRadius: 2 }}>        <Typography variant="h5" component="h2" gutterBottom align="center">
           工作日誌
         </Typography>
         <Stack spacing={3} sx={{ mt: 4 }}>
