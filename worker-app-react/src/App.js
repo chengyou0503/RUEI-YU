@@ -112,10 +112,11 @@ function App() {
   };
 
   const resetApp = (isReturn = false, isLog = false) => {
-    const currentUser = formData.user;
+    const { user, userPhone } = formData; // 保留 user 和 userPhone
     setFormData({
-      user: currentUser, // 保留登入者
-      project: '', deliveryAddress: '', deliveryDate: '', userPhone: '', 
+      user, 
+      userPhone,
+      project: '', deliveryAddress: '', deliveryDate: '', 
       recipientName: '', recipientPhone: '', cart: [], returnCart: []
     });
     navigateTo(1); // 全部返回主選單
@@ -139,7 +140,7 @@ function App() {
           }} 
       />;
       case 1: return <MainMenu {...pageProps} />;
-      case 2: return <ProjectInfoPage {...pageProps} projects={projects.map(p => p.projectName)} allUsers={allUsersData} />;
+      case 2: return <ProjectInfoPage {...pageProps} projects={[...new Set(projects.map(p => p.projectName))]} allUsers={allUsersData} />;
       case 3: return <ProductSelectionPage {...pageProps} items={items} cart={formData.cart} updateCart={updateCart} />;
       case 4: return <PreviewPage {...pageProps} onSubmit={handleRequestSubmit} isSubmitting={submitting} />;
       case 5: return <SuccessPage title="請購單已成功送出！" onNewRequest={() => resetApp(false)} buttonText="建立新的請購單" />;
