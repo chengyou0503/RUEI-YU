@@ -11,7 +11,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     distinction: '',
     floor: '',
     term: '',
-    engineeringItem: '',
+    floor: '',
+    term: '',
     isCompleted: '否',
     content: '',
     photoUrls: [],
@@ -29,21 +30,17 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
 
   const termOptions = useMemo(() => {
     if (!logData.project || !projects) return [];
-    const relatedTerms = projects
-      .filter(p => p.projectName === logData.project)
-      .map(p => p.term)
-      .filter(Boolean);
-    return [...new Set(relatedTerms)];
+    const relatedProjects = projects.filter(p => p.projectName === logData.project && p.term && p.engineeringItem);
+    // 使用 reduce 確保選項唯一性
+    const uniqueOptions = relatedProjects.reduce((acc, p) => {
+      const label = `${p.term} - ${p.engineeringItem}`;
+      if (!acc.some(item => item.label === label)) {
+        acc.push({ label: label, value: p.term });
+      }
+      return acc;
+    }, []);
+    return uniqueOptions;
   }, [logData.project, projects]);
-
-  const engineeringItemOptions = useMemo(() => {
-    if (!logData.project || !logData.term || !projects) return [];
-    const relatedItems = projects
-      .filter(p => p.projectName === logData.project && p.term === logData.term)
-      .map(p => p.engineeringItem)
-      .filter(Boolean);
-    return [...new Set(relatedItems)];
-  }, [logData.project, logData.term, projects]);
 
   const generateTimeOptions = () => {
     const times = [];
@@ -64,15 +61,12 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   };
 
   const handleProjectChange = (event, newValue) => {
-    setLogData(prev => ({ ...prev, project: newValue || '', term: '', engineeringItem: '' }));
+    setLogData(prev => ({ ...prev, project: newValue || '', term: '' }));
   };
 
   const handleTermChange = (event, newValue) => {
-    setLogData(prev => ({ ...prev, term: newValue || '', engineeringItem: '' }));
-  };
-  
-  const handleEngineeringItemChange = (event, newValue) => {
-    setLogData(prev => ({ ...prev, engineeringItem: newValue || '' }));
+    // newValue 現在會是 { label: '...', value: '...' } 或 null
+    setLogData(prev => ({ ...prev, term: newValue ? newValue.value : '' }));
   };
 
   const handleFileChange = (event) => {
@@ -130,7 +124,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     if (!logData.date) newErrors.date = '必須選擇日期';
     if (!logData.project) newErrors.project = '必須選擇案場';
     if (!logData.term) newErrors.term = '必須選擇期數';
-    if (!logData.engineeringItem) newErrors.engineeringItem = '必須選擇工程項目';
     if (!logData.startTime) newErrors.startTime = '必須選擇開始時間';
     if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';
     if (logData.startTime && logData.endTime && logData.startTime >= logData.endTime) {
@@ -178,8 +171,15 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
           <TextField name="floor" label="樓層 (例如: 1F)" fullWidth value={logData.floor} onChange={handleChange} />
         </Stack>
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-           <Autocomplete fullWidth options={termOptions} value={logData.term} onChange={handleTermChange} onInputChange={handleTermChange} disabled={!logData.project} renderInput={(params) => <TextField {...params} label="期數" error={!!errors.term} helperText={errors.term} />} />
-           <Autocomplete fullWidth options={engineeringItemOptions} value={logData.engineeringItem} onChange={handleEngineeringItemChange} onInputChange={handleEngineeringItemChange} disabled={!logData.term} renderInput={(params) => <TextField {...params} label="工程項目" error={!!errors.engineeringItem} helperText={errors.engineeringItem} />} />
+           <Autocomplete 
+             fullWidth 
+             options={termOptions} 
+             getOptionLabel={(option) => option.label || ''}
+             value={termOptions.find(option => option.value === logData.term) || null}
+             onChange={handleTermChange} 
+             disabled={!logData.project} 
+             renderInput={(params) => <TextField {...params} label="期數與工程項目" error={!!errors.term} helperText={errors.term} />} 
+           />
         </Stack>
         <FormControl fullWidth>
           <InputLabel>當期是否完工</InputLabel>
