@@ -7,6 +7,7 @@
 // =========================
 
 function doGet(e) {
+  Logger.log("doGet 接收到的完整 e 物件:", JSON.stringify(e)); // 植入黑盒子
   const action = e.parameter.action;
   const callback = e.parameter.callback;
   let data;
