@@ -104,16 +104,15 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
                 fileName: file.name,
                 date: logData.date,
               };
-              // **重要：改回標準 fetch 並處理 response**
               const response = await fetch("https://script.google.com/macros/s/AKfycbwQs_vTW2s2L-SyDhu3TRjhMAJiEQItmdR8a60GztLjUP4ZOLvYMQgbD5EgdRSRvgAV/exec", {
                 method: 'POST',
                 body: JSON.stringify({ action: 'uploadImage', payload }),
               });
-              const result = await response.text().then(text => JSON.parse(text)); // **重要：修正 response 解析方式**
+              const result = await response.text().then(text => JSON.parse(text));
 
               if (result.status === 'success') {
                 uploadedUrls.push(result.url);
-                folderUrl = result.folderUrl; // 持續更新 folderUrl
+                folderUrl = result.folderUrl;
               } else {
                 throw new Error(result.message || '上傳失敗');
               }
@@ -128,9 +127,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
         });
       }
       
-      // **重要：將上傳結果存入 state**
       setLogData(prev => ({ ...prev, photoUrls: [...prev.photoUrls, ...uploadedUrls], folderUrl }));
-      setSelectedFiles([]); // 清空預覽
+      setSelectedFiles([]);
       setIsUploading(false);
       alert('所有照片已上傳完畢，請點擊「提交日誌」以儲存。');
     };
