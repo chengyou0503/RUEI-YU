@@ -147,7 +147,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
       <Stack spacing={3} sx={{ mt: 4 }}>
         <TextField name="date" label="日期" type="date" value={logData.date} onChange={handleChange} error={!!errors.date} helperText={errors.date} InputLabelProps={{ shrink: true }} />
         <TextField label="工作人員" value={user} disabled fullWidth />
-        <Autocomplete freeSolo fullWidth options={projectOptions} value={logData.project} onChange={handleProjectChange} onInputChange={handleProjectChange} renderInput={(params) => (<TextField {...params} label="案場" error={!!errors.project} helperText={errors.project} />)} />
+        <Autocomplete fullWidth options={projectOptions} value={logData.project} onChange={handleProjectChange} onInputChange={handleProjectChange} renderInput={(params) => (<TextField {...params} label="案場" error={!!errors.project} helperText={errors.project} />)} />
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl fullWidth error={!!errors.startTime}>
             <InputLabel>開始時間</InputLabel>
