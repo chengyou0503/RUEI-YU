@@ -11,6 +11,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
     distinction: '',
     floor: '',
     term: '',
+    engineeringItem: '', // 新增
     isCompleted: '否',
     content: '',
     photoUrls: [],
@@ -59,13 +60,18 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
   };
 
     const handleProjectChange = (event, newValue) => {
-      console.log("案場選擇變更，收到的新值:", newValue);
-      setLogData(prev => ({ ...prev, project: newValue || '', term: '' }));
+      setLogData(prev => ({ ...prev, project: newValue || '', term: '', engineeringItem: '' }));
     };
   
     const handleTermChange = (event, newValue) => {
-      // newValue 現在會是 { label: '...', value: '...' } 或 null
-      setLogData(prev => ({ ...prev, term: newValue ? newValue.value : '' }));
+      if (newValue) {
+        const parts = newValue.label.split(' - ');
+        const term = newValue.value;
+        const engineeringItem = parts[1] || '';
+        setLogData(prev => ({ ...prev, term, engineeringItem }));
+      } else {
+        setLogData(prev => ({ ...prev, term: '', engineeringItem: '' }));
+      }
     };
   
     const handleFileChange = (event) => {
