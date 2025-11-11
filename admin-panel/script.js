@@ -356,19 +356,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function postRequest(action, payload) {
+        const formData = new URLSearchParams();
+        formData.append('action', action);
+        formData.append('payload', JSON.stringify(payload));
+
         try {
             const response = await fetch(APPS_SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors',
                 headers: {
-                    'Content-Type': 'text/plain;charset=utf-8',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: JSON.stringify({ action, payload }),
+                body: formData.toString(),
             });
-            return { status: 'success' }; // Assume success due to no-cors limitation
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // 由於 Google Apps Script 的 POST 回應通常是重定向，我們需要處理這種情況
+            // 最可靠的方式是假設操作成功，並依賴 loadData() 重新整理狀態
+            // 如果需要更精確的回應，後端需要回傳 JSONP 或設定 CORS
+            return { status: 'success' }; 
+
         } catch (error) {
             console.error("Fetch POST Error:", error);
-            throw error;
+            // 即使請求失敗，也回傳一個包含錯誤訊息的物件
+            return { status: 'error', message: error.message };
         }
     }
 
