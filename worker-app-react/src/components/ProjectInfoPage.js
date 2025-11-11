@@ -78,15 +78,15 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
 
         <Grid container spacing={2}>
             <Grid item xs={12} sm={12}>
-                <TextField label="申請人電話" type="tel" fullWidth value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} />
+                <TextField label="申請人電話" type="tel" value={formData.userPhone} disabled error={!!errors.userPhone} helperText={errors.userPhone} sx={{ width: 200 }} />
             </Grid>
-             <Grid item xs={12} sm={7}>
+             <Grid item xs={12} sm={12}>
                 <Autocomplete
                   options={recipientOptions}
                   value={data.recipientName}
                   onChange={handleRecipientChange}
                   onInputChange={handleRecipientChange}
-                  sx={{ minWidth: 200 }} // 設定最小寬度
+                  sx={{ width: 200 }} // 設定固定寬度
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
@@ -97,8 +97,8 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
                   )}
                 />
             </Grid>
-            <Grid item xs={12} sm={5}>
-                <TextField name="recipientPhone" label="收件人電話" type="tel" fullWidth value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} />
+            <Grid item xs={12} sm={12}>
+                <TextField name="recipientPhone" label="收件人電話" type="tel" value={data.recipientPhone} onChange={handleChange} error={!!errors.recipientPhone} helperText={errors.recipientPhone} sx={{ width: 200 }} />
             </Grid>
         </Grid>
       </Stack>
