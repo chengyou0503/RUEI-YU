@@ -1,5 +1,5 @@
 // =========================================================================
-//         瑞宇水電 - 後端邏輯 (v13.0) - [新增偵錯日誌功能]
+//         瑞宇水電 - 後端邏輯 (v12.0) - [新增照片資料夾連結功能]
 // =========================================================================
 
 // =========================
@@ -7,30 +7,23 @@
 // =========================
 
 function doGet(e) {
-  logToSheet('doGet', { message: "函式被呼叫", eventObject: e });
-  try {
-    const action = e.parameter.action;
-    const callback = e.parameter.callback;
-    let data;
-    switch(action) {
-      case 'getRequests': data = getRequests(); break;
-      case 'getReturns': data = getReturns(); break;
-      case 'getUsers': data = getUsers(); break;
-      case 'getProjects': data = getProjects(); break;
-      case 'getItems': data = getItems(); break;
-      case 'getWorkLogs': data = getWorkLogs(); break;
-      default: data = { status: 'error', message: '無效的 GET action' };
-    }
-    if (callback) return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
-    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-  } catch (error) {
-    logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() })).setMimeType(ContentService.MimeType.JSON);
+  const action = e.parameter.action;
+  const callback = e.parameter.callback;
+  let data;
+  switch(action) {
+    case 'getRequests': data = getRequests(); break;
+    case 'getReturns': data = getReturns(); break;
+    case 'getUsers': data = getUsers(); break;
+    case 'getProjects': data = getProjects(); break;
+    case 'getItems': data = getItems(); break;
+    case 'getWorkLogs': data = getWorkLogs(); break;
+    default: data = { status: 'error', message: '無效的 GET action' };
   }
+  if (callback) return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
-  logToSheet('doPost', { message: "函式被呼叫", postData: e.postData.contents });
   try {
     const contents = JSON.parse(e.postData.contents);
     const action = contents.action;
@@ -50,7 +43,7 @@ function doPost(e) {
     }
     return response;
   } catch (error) {
-    logToSheet('doPost CATCH', { error: error.toString(), stack: error.stack, postData: e.postData ? e.postData.contents : null });
+    Logger.log('POST Error: ' + error.toString() + ' | Request Data: ' + (e.postData ? e.postData.contents : JSON.stringify(e.parameter)));
     return createJsonResponse({ status: 'error', message: 'POST 請求處理失敗: ' + error.toString() });
   }
 }
@@ -82,10 +75,7 @@ function getRequests() {
       return acc;
     }, {});
     return Object.values(requestsById).sort((a, b) => b.id - a.id);
-  } catch (error) { 
-    logToSheet('getRequests CATCH', { error: error.toString(), stack: error.stack });
-    return { status: 'error', message: '讀取請購單資料時發生錯誤: ' + error.toString() }; 
-  }
+  } catch (error) { Logger.log('getRequests Error: ' + error.toString()); return { status: 'error', message: '讀取請購單資料時發生錯誤: ' + error.toString() }; }
 }
 
 function getReturns() {
@@ -103,17 +93,13 @@ function getReturns() {
       return acc;
     }, {});
     return Object.values(returnsById).sort((a, b) => b.id - a.id);
-  } catch (error) { 
-    logToSheet('getReturns CATCH', { error: error.toString(), stack: error.stack });
-    return { status: 'error', message: '讀取退貨單資料時發生錯誤: ' + error.toString() }; 
-  }
+  } catch (error) { Logger.log('getReturns Error: ' + error.toString()); return { status: 'error', message: '讀取退貨單資料時發生錯誤: ' + error.toString() }; }
 }
 
 function getWorkLogs() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
     const values = sheet.getDataRange().getDisplayValues();
-    logToSheet('getWorkLogs', { message: "成功讀取到原始 values", data: values });
     values.shift(); 
     if (values.length === 0) return [];
     const logs = values.map(row => ({
@@ -134,7 +120,7 @@ function getWorkLogs() {
     }));
     return logs.sort((a, b) => b.id - a.id);
   } catch (error) {
-    logToSheet('getWorkLogs CATCH', { error: error.toString(), stack: error.stack });
+    Logger.log('getWorkLogs Error: ' + error.toString());
     return { status: 'error', message: '讀取工作日誌資料時發生錯誤: ' + error.toString() };
   }
 }
@@ -177,10 +163,7 @@ function submitRequest(payload) {
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
     lock.releaseLock();
     return createJsonResponse({ status: 'success', message: '請購單已成功送出', id: newId });
-  } catch (error) { 
-    logToSheet('submitRequest CATCH', { error: error.toString(), stack: error.stack, payload: payload });
-    return createJsonResponse({ status: 'error', message: '提交失敗: ' + error.toString() }); 
-  }
+  } catch (error) { Logger.log('submitRequest Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '提交失敗: ' + error.toString() }); }
 }
 
 function submitReturnRequest(payload) {
@@ -196,10 +179,7 @@ function submitReturnRequest(payload) {
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
     lock.releaseLock();
     return createJsonResponse({ status: 'success', message: '退貨單已成功送出', id: newId });
-  } catch (error) { 
-    logToSheet('submitReturnRequest CATCH', { error: error.toString(), stack: error.stack, payload: payload });
-    return createJsonResponse({ status: 'error', message: '提交退貨申請失敗: ' + error.toString() }); 
-  }
+  } catch (error) { Logger.log('submitReturnRequest Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '提交退貨申請失敗: ' + error.toString() }); }
 }
 
 function submitWorkLog(payload) {
@@ -233,7 +213,7 @@ function submitWorkLog(payload) {
     lock.releaseLock();
     return createJsonResponse({ status: 'success', message: '工作日誌已成功送出', id: newId });
   } catch (error) {
-    logToSheet('submitWorkLog CATCH', { error: error.toString(), stack: error.stack, payload: payload });
+    Logger.log('submitWorkLog Error: ' + error.toString());
     return createJsonResponse({ status: 'error', message: '提交工作日誌失敗: ' + error.toString() });
   }
 }
@@ -257,7 +237,7 @@ function uploadImage(payload) {
       folderUrl: dateFolder.getUrl()
     });
   } catch (error) {
-    logToSheet('uploadImage CATCH', { error: error.toString(), stack: error.stack });
+    Logger.log('uploadImage Error: ' + error.toString());
     return createJsonResponse({ status: 'error', message: '圖片上傳失敗: ' + error.toString() });
   }
 }
@@ -277,10 +257,7 @@ function updateStatus(payload) {
     }
     if (updated) return createJsonResponse({ status: 'success' });
     return createJsonResponse({ status: 'error', message: `找不到訂單 ID: ${id}` });
-  } catch (error) { 
-    logToSheet('updateStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
-    return createJsonResponse({ status: 'error', message: '更新訂單狀態失敗: ' + error.toString() }); 
-  }
+  } catch (error) { Logger.log('updateStatus Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '更新訂單狀態失敗: ' + error.toString() }); }
 }
 
 function updateItemStatus(payload) {
@@ -296,10 +273,7 @@ function updateItemStatus(payload) {
       }
     }
     return createJsonResponse({ status: 'error', message: `在訂單 ${orderId} 中找不到品項: ${itemName}` });
-  } catch (error) { 
-    logToSheet('updateItemStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
-    return createJsonResponse({ status: 'error', message: '更新品項狀態失敗: ' + error.toString() }); 
-  }
+  } catch (error) { Logger.log('updateItemStatus Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '更新品項狀態失敗: ' + error.toString() }); }
 }
 
 function updateReturnStatus(payload) {
@@ -317,10 +291,7 @@ function updateReturnStatus(payload) {
     }
     if (updated) return createJsonResponse({ status: 'success' });
     return createJsonResponse({ status: 'error', message: `找不到退貨單 ID: ${id}` });
-  } catch (error) { 
-    logToSheet('updateReturnStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
-    return createJsonResponse({ status: 'error', message: '更新退貨單狀態失敗: ' + error.toString() }); 
-  }
+  } catch (error) { Logger.log('updateReturnStatus Error: ' + error.toString()); return createJsonResponse({ status: 'error', message: '更新退貨單狀態失敗: ' + error.toString() }); }
 }
 
 function updateReturnItemStatus(payload) {
@@ -337,7 +308,7 @@ function updateReturnItemStatus(payload) {
     }
     return createJsonResponse({ status: 'error', message: `在退貨單 ${returnId} 中找不到品項: ${itemName}` });
   } catch (error) {
-    logToSheet('updateReturnItemStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
+    Logger.log('updateReturnItemStatus Error: ' + error.toString());
     return createJsonResponse({ status: 'error', message: '更新退貨品項狀態失敗: ' + error.toString() });
   }
 }
@@ -352,10 +323,7 @@ function getSheetData(sheetName, rowMapping) {
     const values = sheet.getDataRange().getDisplayValues();
     values.shift();
     return values.filter(row => row && row[0] && row[0].trim() !== "").map(rowMapping);
-  } catch (error) { 
-    logToSheet('getSheetData CATCH', { error: error.toString(), stack: error.stack, sheetName: sheetName });
-    return { status: 'error', message: `讀取 '${sheetName}' 資料表時發生錯誤: ` + error.toString() }; 
-  }
+  } catch (error) { Logger.log(`getSheetData Error (${sheetName}): ` + error.toString()); return { status: 'error', message: `讀取 '${sheetName}' 資料表時發生錯誤: ` + error.toString() }; }
 }
 
 function getOrCreateFolder(parentFolder, folderName) {
@@ -376,22 +344,3 @@ function getNextId(sheet) {
   return !isNaN(parseInt(lastId)) ? parseInt(lastId) + 1 : 1;
 }
 
-// 新增：偵錯日誌函式
-function logToSheet(functionName, details) {
-  try {
-    const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    let logSheet = spreadsheet.getSheetByName("偵錯日誌");
-    if (!logSheet) {
-      logSheet = spreadsheet.insertSheet("偵錯日誌");
-      logSheet.appendRow(["時間戳", "函式名稱", "詳細資訊"]);
-      logSheet.setFrozenRows(1);
-    }
-    const timestamp = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const detailsString = JSON.stringify(details, null, 2);
-    logSheet.appendRow([timestamp, functionName, detailsString]);
-  } catch (e) {
-    // 如果連寫入日誌都失敗，就在內建日誌中記錄
-    Logger.log(`無法寫入偵錯日誌工作表: ${e.toString()}`);
-    Logger.log(`原始日誌內容: ${functionName} - ${JSON.stringify(details)}`);
-  }
-}
