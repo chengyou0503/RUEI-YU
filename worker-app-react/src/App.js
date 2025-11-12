@@ -48,18 +48,15 @@ function App() {
 
   // --- 資料載入 ---
   useEffect(() => {
-    const fetchData = async (action) => {
-      try {
-        const res = await fetch(`${SCRIPT_URL}?action=${action}`);
-        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        const data = await res.json();
-        if (data.status === 'error') throw new Error(data.message);
-        return data;
-      } catch (e) { console.error(`Could not fetch ${action}:`, e); throw e; }
-    };
     setLoading(true);
-    Promise.all([fetchData('getUsers'), fetchData('getProjects'), fetchData('getItems')])
-      .then(([usersData, projectsData, itemsData]) => {
+    Promise.all([
+      postRequest('getData', { sub_action: 'getUsers' }), 
+      postRequest('getData', { sub_action: 'getProjects' }), 
+      postRequest('getData', { sub_action: 'getItems' })
+    ]).then(([usersData, projectsData, itemsData]) => {
+        if (usersData.status === 'error' || projectsData.status === 'error' || itemsData.status === 'error') {
+          throw new Error('載入部分初始資料失敗');
+        }
         const itemsWithId = itemsData.map((item, index) => ({ ...item, id: `item-${index}` }));
         setAllUsersData(usersData); // **儲存完整資料**
         setProjects(projectsData);
@@ -87,10 +84,11 @@ function App() {
         body: formData.toString(),
       });
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      return { status: 'success' };
+      const result = await response.json();
+      return result;
     } catch (e) {
       console.error(`Could not post ${action}:`, e);
-      throw e;
+      return { status: 'error', message: e.message };
     }
   };
 

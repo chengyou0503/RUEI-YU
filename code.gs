@@ -46,6 +46,22 @@ function doPost(e) {
     
     let response;
     switch(action) {
+      // **新增：透過 POST 獲取資料的路由**
+      case 'getData':
+        const subAction = payload.sub_action;
+        let data;
+        switch(subAction) {
+          case 'getRequests': data = getRequests(); break;
+          case 'getReturns': data = getReturns(); break;
+          case 'getUsers': data = getUsers(); break;
+          case 'getProjects': data = getProjects(); break;
+          case 'getItems': data = getItems(); break;
+          case 'getWorkLogs': data = getWorkLogs(); break;
+          default: data = { status: 'error', message: '無效的 getData sub_action' };
+        }
+        response = createJsonResponse(data);
+        break;
+
       case 'submitRequest': response = submitRequest(payload); break;
       case 'updateStatus': response = updateStatus(payload); break;
       case 'updateItemStatus': response = updateItemStatus(payload); break;

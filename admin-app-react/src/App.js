@@ -45,9 +45,9 @@ function App() {
     }
     setError(null);
     try {
-      const response = await fetch(`${APPS_SCRIPT_URL}?action=${action}`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
+      // **重構：使用 postRequest 來獲取資料**
+      const data = await postRequest('getData', { sub_action: action }, true); // 新增一個參數來抑制 loading 狀態
+
       if (data.status === 'error') throw new Error(data.message);
       
       switch(action) {
@@ -97,8 +97,10 @@ function App() {
     fetchData(actions[tabValue], false); // 手動刷新視為非背景
   }
 
-  const postRequest = async (action, payload) => {
-    setIsRefreshing(true); // 使用背景刷新狀態
+  const postRequest = async (action, payload, isGetData = false) => {
+    if (!isGetData) { // 如果不是獲取資料的請求，才設定 refreshing 狀態
+      setIsRefreshing(true);
+    }
     setError(null);
     try {
       const formData = new URLSearchParams();
@@ -113,12 +115,17 @@ function App() {
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
-      return { status: 'success' };
+      // **修改：讓 postRequest 能夠回傳 JSON 資料**
+      const result = await response.json();
+      return result;
+
     } catch (e) {
-      setError(`更新失敗: ${e.message}`);
-      return { status: 'error' };
+      setError(`請求失敗: ${e.message}`);
+      return { status: 'error', message: e.message };
     } finally {
-      setIsRefreshing(false);
+      if (!isGetData) {
+        setIsRefreshing(false);
+      }
     }
   };
 
