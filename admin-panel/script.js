@@ -112,7 +112,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <td>${item.size}</td>
                                         <td>${item.quantity} ${item.unit}</td>
                                         <td>
-                                            <select class="status-select" data-order-id="${request.id}" data-item-name="${item.subcategory}">
+                                            <select class="status-select" 
+                                                    data-order-id="${request.id}" 
+                                                    data-item-name="${item.subcategory}"
+                                                    data-thickness="${item.thickness}"
+                                                    data-size="${item.size}">
                                                 <option value="待處理" ${item.status === '待處理' ? 'selected' : ''}>待處理</option>
                                                 <option value="完成" ${item.status === '完成' ? 'selected' : ''}>完成</option>
                                             </select>
@@ -140,10 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function updateItemStatus(orderId, itemName, newStatus, selectElement) {
+    async function updateItemStatus(orderId, itemName, newStatus, thickness, size, selectElement) {
         selectElement.disabled = true;
         try {
-            const response = await postRequest('updateItemStatus', { orderId, itemName, newStatus });
+            const response = await postRequest('updateItemStatus', { orderId, itemName, newStatus, thickness, size });
             if (response.status !== 'success') throw new Error(response.message);
             loadData(true);
         } catch (error) {
@@ -155,8 +159,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function attachRequestListeners() {
         document.querySelectorAll('#requests-container .status-select').forEach(select => {
             select.addEventListener('change', (e) => {
-                const { orderId, itemName } = e.target.dataset;
-                updateItemStatus(orderId, itemName, e.target.value, e.target);
+                const { orderId, itemName, thickness, size } = e.target.dataset;
+                updateItemStatus(orderId, itemName, e.target.value, thickness, size, e.target);
             });
         });
         document.querySelectorAll('#requests-container [data-action="complete-all"]').forEach(button => {
