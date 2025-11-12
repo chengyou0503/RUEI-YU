@@ -41,43 +41,45 @@ const RequestCard = ({ request, onUpdateStatus, onUpdateItemStatus }) => {
         </Box>
 
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>品項狀態管理</Typography>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>大分類</TableCell>
-              <TableCell>小分類</TableCell>
-              <TableCell>厚度</TableCell>
-              <TableCell>尺寸</TableCell>
-              <TableCell>數量</TableCell>
-              <TableCell>狀態</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {request.items.map((item, index) => (
-              <TableRow key={index}>
-                <TableCell>{item.category}</TableCell>
-                <TableCell>{item.subcategory}</TableCell>
-                <TableCell>{item.thickness}</TableCell>
-                <TableCell>{item.size}</TableCell>
-                <TableCell>{item.quantity} {item.unit}</TableCell>
-                <TableCell>
-                  <Select
-                    value={item.status}
-                    onChange={(e) => handleItemStatusChange(e, item)}
-                    size="small"
-                    sx={{ 
-                      backgroundColor: item.status === '完成' ? '#e8f5e9' : 'inherit',
-                      color: item.status === '完成' ? '#2e7d32' : 'inherit'
-                    }}
-                  >
-                    <MenuItem value="待處理">待處理</MenuItem>
-                    <MenuItem value="完成">完成</MenuItem>
-                  </Select>
-                </TableCell>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>大分類</TableCell>
+                <TableCell>小分類</TableCell>
+                <TableCell>厚度</TableCell>
+                <TableCell>尺寸</TableCell>
+                <TableCell>數量</TableCell>
+                <TableCell>狀態</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHead>
+            <TableBody>
+              {request.items.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{item.category}</TableCell>
+                  <TableCell>{item.subcategory}</TableCell>
+                  <TableCell>{item.thickness}</TableCell>
+                  <TableCell>{item.size}</TableCell>
+                  <TableCell>{item.quantity} {item.unit}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={item.status}
+                      onChange={(e) => handleItemStatusChange(e, item)}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: item.status === '完成' ? '#e8f5e9' : 'inherit',
+                        color: item.status === '完成' ? '#2e7d32' : 'inherit'
+                      }}
+                    >
+                      <MenuItem value="待處理">待處理</MenuItem>
+                      <MenuItem value="完成">完成</MenuItem>
+                    </Select>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
       </CardContent>
     </Card>
   );

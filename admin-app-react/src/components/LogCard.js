@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Link } from '@mui/material';
+import { Card, CardContent, Typography, Box, Link, Grid } from '@mui/material';
 
 const LogCard = ({ log }) => {
   return (
@@ -19,32 +19,32 @@ const LogCard = ({ log }) => {
           記錄人: {log.user} | 日期: {log.date}
         </Typography>
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 2, mb: 2 }}>
-          <Box>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">時段</Typography>
             <Typography>{log.timeSlot || '未填寫'}</Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">區別</Typography>
             <Typography>{log.distinction || '未填寫'}</Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">樓層</Typography>
             <Typography>{log.floor || '未填寫'}</Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">期數</Typography>
             <Typography>{log.term || '未填寫'}</Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">工程項目</Typography>
             <Typography>{log.engineeringItem || '未填寫'}</Typography>
-          </Box>
-          <Box>
+          </Grid>
+          <Grid item xs={12} sm={6}>
             <Typography variant="caption" color="text.secondary">當期完工</Typography>
             <Typography>{log.isCompleted}</Typography>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
 
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 2 }}>工作內容</Typography>
         <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>

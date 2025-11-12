@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Tabs, Tab, CircularProgress, Alert, Button } from '@mui/material';
-
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDu8_VUHcwW5ne85ohiGZ0KlMBNA6JlJjuoFPC5Mz9Zq-ZwpO9bgIcbRbaEWisVFfT_g/exec';
+import { Container, Typography, Box, Tabs, Tab, CircularProgress, Alert, Button, useMediaQuery, useTheme } from '@mui/material';
 
 import RequestCard from './components/RequestCard';
 import ReturnCard from './components/ReturnCard';
 import LogCard from './components/LogCard';
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwDu8_VUHcwW5ne85ohiGZ0KlMBNA6JlJjuoFPC5Mz9Zq-ZwpO9bgIcbRbaEWisVFfT_g/exec';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -27,6 +27,8 @@ function TabPanel(props) {
 }
 
 function App() {
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -119,9 +121,9 @@ function App() {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h1">
+    <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 4 } }}>
+        <Typography variant={isSmallScreen ? 'h5' : 'h4'} component="h1">
           管理後台
         </Typography>
         <Button variant="contained" onClick={handleRefresh} disabled={loading}>

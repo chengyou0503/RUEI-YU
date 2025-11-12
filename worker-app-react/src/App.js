@@ -173,7 +173,7 @@ function App() {
   const activeStepIndex = getActiveStepIndex();
 
   return (
-    <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
+    <Container maxWidth="md" sx={{ py: { xs: 2, md: 4 } }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom sx={{ mb: 4 }}>
         瑞宇水電 - 工作系統
       </Typography>
