@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Deploy Multi-App to GitHub Pages
 
 on:
   push:
@@ -17,14 +17,28 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install Dependencies and Build
+      - name: Build Worker App
         run: |
           npm install --prefix worker-app-react
           npm run build --prefix worker-app-react
         env:
           CI: false
 
-      - name: Verify Build Output
+      - name: Build Admin App
+        run: |
+          npm install --prefix admin-app-react
+          npm run build --prefix admin-app-react
+        env:
+          CI: false
+
+      - name: Prepare Deploy Directory
+        run: |
+          rm -rf docs
+          mkdir -p docs/admin
+          cp -r worker-app-react/build/* docs/
+          cp -r admin-app-react/build/* docs/admin/
+
+      - name: Verify Deploy Directory
         run: ls -R docs
 
       - name: Deploy
@@ -33,4 +47,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
           keep_files: false
-
