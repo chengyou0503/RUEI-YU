@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadingIndicator = document.getElementById('loading-indicator');
 
     // --- 設定 ---
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw-Sw9q_dA_m4GOTw4z7ky6VCH7-T36-TlF63c1qUTswGe9tq3-t0ITv5Z9HqspyARENQ/exec';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxrPAKlt4rxSvvbGKA4wuHAeP3__hRkkd4mb_GVSUp-mNaHlnP4Qpv2bG-48TMKuXOOuw/exec';
     const REFRESH_INTERVAL = 15000;
 
     // --- 狀態 ---
