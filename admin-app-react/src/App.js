@@ -120,6 +120,9 @@ function App() {
     }
   };
 
+  const pendingRequests = requests.filter(req => req.items && req.items.some(item => item.status !== '完成'));
+  const pendingReturns = returns.filter(ret => ret.items && ret.items.some(item => item.status !== '完成'));
+
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 4 } }}>
@@ -144,8 +147,8 @@ function App() {
       <TabPanel value={tabValue} index={0}>
         {loading ? (
           <CircularProgress />
-        ) : requests.length > 0 ? (
-          requests.map(req => (
+        ) : pendingRequests.length > 0 ? (
+          pendingRequests.map(req => (
             <RequestCard 
               key={req.id} 
               request={req} 
@@ -160,8 +163,8 @@ function App() {
       <TabPanel value={tabValue} index={1}>
         {loading ? (
           <CircularProgress />
-        ) : returns.length > 0 ? (
-          returns.map(ret => <ReturnCard key={ret.id} ret={ret} />)
+        ) : pendingReturns.length > 0 ? (
+          pendingReturns.map(ret => <ReturnCard key={ret.id} ret={ret} />)
         ) : (
           <Typography>目前沒有待處理的退貨單。</Typography>
         )}
