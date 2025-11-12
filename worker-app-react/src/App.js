@@ -75,6 +75,25 @@ function App() {
   const updateCart = (cart) => updateFormData({ cart });
   const updateReturnCart = (returnCart) => updateFormData({ returnCart });
 
+  const postRequest = async (action, payload) => {
+    const formData = new URLSearchParams();
+    formData.append('action', action);
+    formData.append('payload', JSON.stringify(payload));
+
+    try {
+      const response = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString(),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return { status: 'success' };
+    } catch (e) {
+      console.error(`Could not post ${action}:`, e);
+      throw e;
+    }
+  };
+
   const handleRequestSubmit = async () => {
     setSubmitting(true);
     setError(null);
@@ -82,7 +101,7 @@ function App() {
     delete payload.cart;
     delete payload.returnCart;
     try {
-      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'submitRequest', payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+      await postRequest('submitRequest', payload);
       navigateTo(5);
     } catch (err) { setError('提交失敗，請檢查您的網路連線並稍後再試。'); } finally { setSubmitting(false); }
   };
@@ -92,17 +111,16 @@ function App() {
     setError(null);
     const payload = { user: formData.user, project: formData.project, returnCart: formData.returnCart };
     try {
-      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'submitReturnRequest', payload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+      await postRequest('submitReturnRequest', payload);
       navigateTo(11);
     } catch (err) { setError('退貨申請提交失敗，請檢查網路連線。'); } finally { setSubmitting(false); }
   };
   
-  // **新增：處理工作日誌提交**
   const handleWorkLogSubmit = async (logPayload) => {
     setSubmitting(true);
     setError(null);
     try {
-      await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'submitWorkLog', payload: logPayload }), headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
+      await postRequest('submitWorkLog', logPayload);
       navigateTo(21); // 導向日誌成功頁面
     } catch (err) {
       setError('日誌提交失敗，請檢查您的網路連線並稍後再試。');
