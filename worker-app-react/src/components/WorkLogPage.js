@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Box, Typography, Button, FormControl, InputLabel, Select, MenuItem, TextField, Autocomplete, Stack, CircularProgress, Paper, Grid, IconButton, LinearProgress } from '@mui/material';
 import { PhotoCamera, Delete } from '@mui/icons-material';
 
-const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => {
+const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scriptUrl, postRequest }) => {
   const [logData, setLogData] = useState({
     date: new Date().toISOString().split('T')[0],
     project: '',
@@ -104,11 +104,17 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo }) => 
                 fileName: file.name,
                 date: logData.date,
               };
-              const response = await fetch("https://script.google.com/macros/s/AKfycbwQs_vTW2s2L-SyDhu3TRjhMAJiEQItmdR8a60GztLjUP4ZOLvYMQgbD5EgdRSRvgAV/exec", {
+              
+              // **修正：使用傳入的 postRequest 函式**
+              const response = await fetch(scriptUrl, {
                 method: 'POST',
-                body: JSON.stringify({ action: 'uploadImage', payload }),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                  action: 'uploadImage',
+                  payload: JSON.stringify(payload)
+                }).toString()
               });
-              const result = await response.text().then(text => JSON.parse(text));
+              const result = await response.json();
 
               if (result.status === 'success') {
                 uploadedUrls.push(result.url);

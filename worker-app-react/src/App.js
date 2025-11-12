@@ -165,7 +165,7 @@ function App() {
       case 10: return <ReturnPage {...pageProps} projects={projects.map(p => p.projectName)} items={items} returnCart={formData.returnCart} updateReturnCart={updateReturnCart} onSubmit={handleReturnSubmit} isSubmitting={submitting} />;
       case 11: return <ReturnSuccessPage onBackToMenu={() => resetApp(true)} />;
       // **新增：工作日誌流程**
-      case 20: return <WorkLogPage {...pageProps} user={formData.user} projects={projects} onSubmit={handleWorkLogSubmit} isSubmitting={submitting} />;
+      case 20: return <WorkLogPage {...pageProps} user={formData.user} projects={projects} onSubmit={handleWorkLogSubmit} isSubmitting={submitting} scriptUrl={SCRIPT_URL} postRequest={postRequest} />;
       case 21: return <SuccessPage title="工作日誌已成功提交！" onNewRequest={() => resetApp(false, true)} buttonText="返回主選單" />;
       default: return <Typography>未知的步驟</Typography>;
     }
