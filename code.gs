@@ -294,13 +294,15 @@ function updateItemStatus(payload) {
   // 在函式開頭就記錄傳入的 payload，以便偵錯
   logToSheet('updateItemStatus Start', { message: "函式開始執行", payload: payload });
   try {
-    const { orderId, itemName, newStatus } = payload;
+    const { orderId, itemName, newStatus, thickness, size } = payload; // 新增 thickness 和 size
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
     
-    const idCol = 0;       // A 欄
-    const nameCol = 10;      // K 欄 (小分類)
-    const statusCol = 15;    // P 欄 (品項狀態)
+    const idCol = 0;         // A 欄
+    const nameCol = 10;        // K 欄 (小分類)
+    const thicknessCol = 11;   // L 欄 (厚度)
+    const sizeCol = 12;        // M 欄 (尺寸)
+    const statusCol = 15;      // P 欄 (品項狀態)
 
     let updated = false; // 用於追蹤是否成功更新
 
@@ -308,13 +310,20 @@ function updateItemStatus(payload) {
       // 防禦性程式設計：移除字串前後可能存在的空格再進行比對
       const sheetItemName = data[i][nameCol] ? data[i][nameCol].toString().trim() : '';
       const payloadItemName = itemName ? itemName.toString().trim() : '';
+      const sheetThickness = data[i][thicknessCol] ? data[i][thicknessCol].toString().trim() : '';
+      const payloadThickness = thickness ? thickness.toString().trim() : '';
+      const sheetSize = data[i][sizeCol] ? data[i][sizeCol].toString().trim() : '';
+      const payloadSize = size ? size.toString().trim() : '';
 
-      if (data[i][idCol] == orderId && sheetItemName == payloadItemName) {
-        // 更新儲存格時，使用 1-based 索引
+      if (data[i][idCol] == orderId && 
+          sheetItemName == payloadItemName &&
+          sheetThickness == payloadThickness &&
+          sheetSize == payloadSize) {
+        
         sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
         updated = true;
-        // 假設訂單中的品項名稱是唯一的，找到後可以提前結束迴圈以提高效率
-        // break; 
+        // 找到唯一匹配的品項後，立即跳出迴圈
+        break; 
       }
     }
 
@@ -322,13 +331,12 @@ function updateItemStatus(payload) {
       logToSheet('updateItemStatus Success', { message: "成功找到並更新品項", payload: payload });
       return createJsonResponse({ status: 'success', message: '品項狀態已成功更新' });
     } else {
-      // 如果迴圈跑完都沒有找到任何匹配，記錄下來並回傳錯誤
       logToSheet('updateItemStatus Failure', { 
         message: "找不到匹配的品項來更新", 
         payload: payload,
-        sheetDataPreview: data.slice(1, 6) // 記錄工作表前5筆數據以供參考
+        sheetDataPreview: data.slice(1, 6)
       });
-      return createJsonResponse({ status: 'error', message: `在訂單 ${orderId} 中找不到品項: '${itemName}'` });
+      return createJsonResponse({ status: 'error', message: `在訂單 ${orderId} 中找不到品項: '${itemName}' (${thickness}, ${size})` });
     }
 
   } catch (error) { 
