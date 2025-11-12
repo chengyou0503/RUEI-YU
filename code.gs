@@ -267,16 +267,23 @@ function updateStatus(payload) {
     const { id, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
-    const statusColumn = 16; // P 欄
+    const idCol = 0;         // A 欄
+    const statusCol = 15;    // P 欄 (品項狀態)
     let updated = false;
+
     for (let i = 1; i < data.length; i++) {
-      if (data[i][0] == id) {
-        sheet.getRange(i + 1, statusColumn).setValue(newStatus);
+      if (data[i][idCol] == id) {
+        // 更新儲存格時，使用 1-based 索引
+        sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
         updated = true;
       }
     }
-    if (updated) return createJsonResponse({ status: 'success' });
-    return createJsonResponse({ status: 'error', message: `找不到訂單 ID: ${id}` });
+
+    if (updated) {
+      return createJsonResponse({ status: 'success', message: '訂單狀態已成功更新' });
+    } else {
+      return createJsonResponse({ status: 'error', message: `找不到訂單 ID: ${id}` });
+    }
   } catch (error) { 
     logToSheet('updateStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
     return createJsonResponse({ status: 'error', message: '更新訂單狀態失敗: ' + error.toString() }); 
