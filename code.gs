@@ -44,7 +44,6 @@ function doPost(e) {
     const action = e.parameter.action;
     const payload = JSON.parse(e.parameter.payload);
     
-    let response;
     switch(action) {
       // **新增：透過 POST 獲取資料的路由**
       case 'getData':
@@ -59,20 +58,18 @@ function doPost(e) {
           case 'getWorkLogs': data = getWorkLogs(); break;
           default: data = { status: 'error', message: '無效的 getData sub_action' };
         }
-        response = createJsonResponse(data);
-        break;
+        return createJsonResponse(data);
 
-      case 'submitRequest': response = submitRequest(payload); break;
-      case 'updateStatus': response = updateStatus(payload); break;
-      case 'updateItemStatus': response = updateItemStatus(payload); break;
-      case 'submitReturnRequest': response = submitReturnRequest(payload); break;
-      case 'updateReturnStatus': response = updateReturnStatus(payload); break;
-      case 'updateReturnItemStatus': response = updateReturnItemStatus(payload); break;
-      case 'submitWorkLog': response = submitWorkLog(payload); break;
-      case 'uploadImage': response = uploadImage(payload); break;
-      default: response = createJsonResponse({ status: 'error', message: '無效的 POST action' });
+      case 'submitRequest': return submitRequest(payload);
+      case 'updateStatus': return updateStatus(payload);
+      case 'updateItemStatus': return updateItemStatus(payload);
+      case 'submitReturnRequest': return submitReturnRequest(payload);
+      case 'updateReturnStatus': return updateReturnStatus(payload);
+      case 'updateReturnItemStatus': return updateReturnItemStatus(payload);
+      case 'submitWorkLog': return submitWorkLog(payload);
+      case 'uploadImage': return uploadImage(payload);
+      default: return createJsonResponse({ status: 'error', message: '無效的 POST action' });
     }
-    return response;
   } catch (error) {
     // logToSheet('doPost CATCH', { error: error.toString(), stack: error.stack, postData: e.postData ? e.postData.contents : null, parameter: e.parameter });
     return createJsonResponse({ status: 'error', message: 'POST 請求處理失敗: ' + error.toString() });
