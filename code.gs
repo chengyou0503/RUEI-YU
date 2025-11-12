@@ -397,7 +397,11 @@ function updateReturnItemStatus(payload) {
     const data = sheet.getDataRange().getValues();
     const idCol = 0, nameCol = 4, statusCol = 7; 
     for (let i = 1; i < data.length; i++) {
-      if (data[i][idCol] == returnId && data[i][nameCol] == itemName) {
+      // **新增 .trim() 來移除空格**
+      const sheetItemName = data[i][nameCol] ? data[i][nameCol].toString().trim() : '';
+      const payloadItemName = itemName ? itemName.toString().trim() : '';
+
+      if (data[i][idCol] == returnId && sheetItemName == payloadItemName) {
         sheet.getRange(i + 1, statusCol + 1).setValue(newStatus);
         return createJsonResponse({ status: 'success' });
       }
