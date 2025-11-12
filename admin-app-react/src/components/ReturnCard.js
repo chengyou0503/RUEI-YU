@@ -1,7 +1,17 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem } from '@mui/material';
+import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, Button } from '@mui/material';
 
-const ReturnCard = ({ ret }) => {
+const ReturnCard = ({ ret, onUpdateStatus, onUpdateItemStatus }) => {
+
+  const handleItemStatusChange = (e, item) => {
+    const newStatus = e.target.value;
+    onUpdateItemStatus({
+      returnId: ret.id,
+      itemName: item.name,
+      newStatus: newStatus,
+    });
+  };
+
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
@@ -9,6 +19,13 @@ const ReturnCard = ({ ret }) => {
           <Typography variant="h6" component="div">
             <Box component="span" sx={{ fontWeight: 'bold', color: 'primary.main' }}>#{ret.id}</Box> - {ret.project}
           </Typography>
+          <Button 
+            variant="contained" 
+            size="small"
+            onClick={() => onUpdateStatus(ret.id, '完成')}
+          >
+            全部完成
+          </Button>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           申請人: {ret.user} | 時間: {ret.timestamp}
@@ -34,6 +51,7 @@ const ReturnCard = ({ ret }) => {
                   <TableCell>
                     <Select
                       value={item.status}
+                      onChange={(e) => handleItemStatusChange(e, item)}
                       size="small"
                       sx={{ 
                         backgroundColor: item.status === '完成' ? '#e8f5e9' : 'inherit',

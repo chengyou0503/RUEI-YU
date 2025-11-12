@@ -66,9 +66,17 @@ function App() {
   };
 
   useEffect(() => {
-    if (tabValue === 0) fetchData('getRequests');
-    if (tabValue === 1) fetchData('getReturns');
-    if (tabValue === 2) fetchData('getWorkLogs');
+    const actions = ['getRequests', 'getReturns', 'getWorkLogs'];
+    const currentAction = actions[tabValue];
+
+    if (currentAction) {
+      fetchData(currentAction); // 立即獲取一次資料
+      const intervalId = setInterval(() => {
+        fetchData(currentAction);
+      }, 15000); // 每 15 秒輪詢一次
+
+      return () => clearInterval(intervalId); // 清除計時器
+    }
   }, [tabValue]);
 
   const handleTabChange = (event, newValue) => {
@@ -109,14 +117,70 @@ function App() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     const result = await postRequest('updateStatus', { id: orderId, newStatus });
     if (result.status === 'success') {
-      handleRefresh();
+      // 直接更新 state，避免重新載入
+      setRequests(prevRequests => 
+        prevRequests.map(req => 
+          req.id === orderId 
+            ? { ...req, items: req.items.map(item => ({ ...item, status: newStatus })) }
+            : req
+        )
+      );
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
     const result = await postRequest('updateItemStatus', payload);
     if (result.status === 'success') {
-      handleRefresh();
+      // 直接更新 state
+      setRequests(prevRequests =>
+        prevRequests.map(req =>
+          req.id === payload.orderId
+            ? {
+                ...req,
+                items: req.items.map(item =>
+                  item.subcategory === payload.itemName &&
+                  item.thickness === payload.thickness &&
+                  item.size === payload.size
+                    ? { ...item, status: payload.newStatus }
+                    : item
+                ),
+              }
+            : req
+        )
+      );
+    }
+  };
+
+  const handleUpdateReturnStatus = async (returnId, newStatus) => {
+    const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
+    if (result.status === 'success') {
+      setReturns(prev => 
+        prev.map(r => 
+          r.id === returnId 
+            ? { ...r, items: r.items.map(item => ({ ...item, status: newStatus })) }
+            : r
+        )
+      );
+    }
+  };
+
+  const handleUpdateReturnItemStatus = async (payload) => {
+    const result = await postRequest('updateReturnItemStatus', payload);
+    if (result.status === 'success') {
+      setReturns(prev =>
+        prev.map(r =>
+          r.id === payload.returnId
+            ? {
+                ...r,
+                items: r.items.map(item =>
+                  item.name === payload.itemName
+                    ? { ...item, status: payload.newStatus }
+                    : item
+                ),
+              }
+            : r
+        )
+      );
     }
   };
 
@@ -164,7 +228,14 @@ function App() {
         {loading ? (
           <CircularProgress />
         ) : pendingReturns.length > 0 ? (
-          pendingReturns.map(ret => <ReturnCard key={ret.id} ret={ret} />)
+          pendingReturns.map(ret => 
+            <ReturnCard 
+              key={ret.id} 
+              ret={ret} 
+              onUpdateStatus={handleUpdateReturnStatus}
+              onUpdateItemStatus={handleUpdateReturnItemStatus}
+            />
+          )
         ) : (
           <Typography>目前沒有待處理的退貨單。</Typography>
         )}
