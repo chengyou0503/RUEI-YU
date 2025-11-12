@@ -359,6 +359,7 @@ function updateItemStatus(payload) {
 }
 
 function updateReturnStatus(payload) {
+  logToSheet('updateReturnStatus Start', { message: "函式開始執行", payload: payload });
   try {
     const { id, newStatus } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("退貨單");
@@ -371,7 +372,11 @@ function updateReturnStatus(payload) {
         updated = true;
       }
     }
-    if (updated) return createJsonResponse({ status: 'success' });
+    if (updated) {
+      logToSheet('updateReturnStatus Success', { message: "成功找到並更新退貨單", payload: payload });
+      return createJsonResponse({ status: 'success' });
+    }
+    logToSheet('updateReturnStatus Failure', { message: `找不到退貨單 ID: ${id}`, payload: payload });
     return createJsonResponse({ status: 'error', message: `找不到退貨單 ID: ${id}` });
   } catch (error) { 
     logToSheet('updateReturnStatus CATCH', { error: error.toString(), stack: error.stack, payload: payload });
