@@ -8,9 +8,10 @@
 
 function doGet(e) {
   // logToSheet('doGet', { message: "函式被呼叫", eventObject: e });
-  let data;
   try {
     const action = e.parameter.action;
+    const callback = e.parameter.callback;
+    let data;
     switch(action) {
       case 'getRequests': data = getRequests(); break;
       case 'getReturns': data = getReturns(); break;
@@ -20,17 +21,20 @@ function doGet(e) {
       case 'getWorkLogs': data = getWorkLogs(); break;
       default: data = { status: 'error', message: '無效的 GET action' };
     }
+    if (callback) {
+      return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT)
+        .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+    }
+    return ContentService.createTextOutput(JSON.stringify(data))
+      .setMimeType(ContentService.MimeType.JSON)
+      .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
   } catch (error) {
     // logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
-    data = { status: 'error', message: 'doGet 處理失敗: ' + error.toString() };
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() }))
+      .setMimeType(ContentService.MimeType.JSON)
+      .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
   }
-  
-  const output = ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-  output.withHeaders({
-    'Access-Control-Allow-Origin': '*',
-    'X-Frame-Options': 'SAMEORIGIN'
-  });
-  return output;
 }
 
 function doPost(e) {
