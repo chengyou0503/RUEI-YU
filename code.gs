@@ -21,11 +21,16 @@ function doGet(e) {
       case 'getWorkLogs': data = getWorkLogs(); break;
       default: data = { status: 'error', message: '無效的 GET action' };
     }
-    if (callback) return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`).setMimeType(ContentService.MimeType.JAVASCRIPT);
-    return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+    const output = ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+    // **新增 CORS 標頭**
+    output.withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+    return output;
   } catch (error) {
     // logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() })).setMimeType(ContentService.MimeType.JSON);
+    const errorOutput = ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() })).setMimeType(ContentService.MimeType.JSON);
+    // **新增 CORS 標頭**
+    errorOutput.withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+    return errorOutput;
   }
 }
 
