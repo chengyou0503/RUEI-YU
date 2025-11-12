@@ -31,13 +31,18 @@ function App() {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // 新增：背景刷新狀態
   const [error, setError] = useState(null);
   const [requests, setRequests] = useState([]);
   const [returns, setReturns] = useState([]);
   const [logs, setLogs] = useState([]);
 
-  const fetchData = async (action) => {
-    setLoading(true);
+  const fetchData = async (action, isBackground = false) => {
+    if (!isBackground) {
+      setLoading(true);
+    } else {
+      setIsRefreshing(true);
+    }
     setError(null);
     try {
       const response = await fetch(`${APPS_SCRIPT_URL}?action=${action}`);
@@ -61,7 +66,11 @@ function App() {
     } catch (e) {
       setError(`載入資料失敗: ${e.message}`);
     } finally {
-      setLoading(false);
+      if (!isBackground) {
+        setLoading(false);
+      } else {
+        setIsRefreshing(false);
+      }
     }
   };
 
@@ -70,10 +79,10 @@ function App() {
     const currentAction = actions[tabValue];
 
     if (currentAction) {
-      fetchData(currentAction); // 立即獲取一次資料
+      fetchData(currentAction, false); // 立即獲取一次資料 (非背景)
       const intervalId = setInterval(() => {
-        fetchData(currentAction);
-      }, 15000); // 每 15 秒輪詢一次
+        fetchData(currentAction, true); // 每 15 秒輪詢一次 (背景)
+      }, 15000); 
 
       return () => clearInterval(intervalId); // 清除計時器
     }
@@ -84,13 +93,12 @@ function App() {
   };
 
   const handleRefresh = () => {
-    if (tabValue === 0) fetchData('getRequests');
-    if (tabValue === 1) fetchData('getReturns');
-    if (tabValue === 2) fetchData('getWorkLogs');
+    const actions = ['getRequests', 'getReturns', 'getWorkLogs'];
+    fetchData(actions[tabValue], false); // 手動刷新視為非背景
   }
 
   const postRequest = async (action, payload) => {
-    setLoading(true);
+    setIsRefreshing(true); // 使用背景刷新狀態
     setError(null);
     try {
       const formData = new URLSearchParams();
@@ -110,7 +118,7 @@ function App() {
       setError(`更新失敗: ${e.message}`);
       return { status: 'error' };
     } finally {
-      setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -193,8 +201,8 @@ function App() {
         <Typography variant={isSmallScreen ? 'h5' : 'h4'} component="h1">
           管理後台
         </Typography>
-        <Button variant="contained" onClick={handleRefresh} disabled={loading}>
-          {loading ? <CircularProgress size={24} /> : '刷新'}
+        <Button variant="contained" onClick={handleRefresh} disabled={loading || isRefreshing}>
+          {(loading || isRefreshing) ? <CircularProgress size={24} /> : '刷新'}
         </Button>
       </Box>
 
