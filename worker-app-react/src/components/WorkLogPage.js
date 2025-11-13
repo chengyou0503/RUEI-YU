@@ -106,15 +106,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
               };
               
               // **修正：使用傳入的 postRequest 函式**
-              const response = await fetch(scriptUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                  action: 'uploadImage',
-                  payload: JSON.stringify(payload)
-                }).toString()
-              });
-              const result = await response.json();
+              const result = await postRequest('uploadImage', payload);
 
               if (result.status === 'success') {
                 uploadedUrls.push(result.url);
