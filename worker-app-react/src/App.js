@@ -37,17 +37,6 @@ function App() {
     cart: [],
     returnCart: [],
   });
-
-  // 新增：禁用右鍵選單的副作用
-  useEffect(() => {
-    const handleContextMenu = (e) => {
-      e.preventDefault();
-    };
-    document.addEventListener('contextmenu', handleContextMenu);
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-    };
-  }, []);
   
   // **優化：從完整資料派生出不重複的申請人列表**
   const users = useMemo(() => {
