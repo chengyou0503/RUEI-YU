@@ -86,19 +86,22 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
     };
   
     const handleUpload = async () => {
+      // 步驟 1: 統一驗證
+      if (!validate()) return;
+
+      // 步驟 2: 如果沒有要上傳的檔案，直接提交
       if (selectedFiles.length === 0) {
-        // 如果沒有選擇檔案，但使用者可能想提交沒有照片的日誌
-        handleSubmit(logData);
+        const timeSlot = `${logData.startTime}-${logData.endTime}`;
+        onSubmit({ ...logData, user, timeSlot });
         return;
       }
       
-      if (!validate()) return; // 在上傳前也進行一次驗證
-
+      // 步驟 3: 如果有檔案，開始上傳流程
       setIsUploading(true);
       setUploadProgress(0);
   
       let folderUrl = '';
-      const uploadedUrls = [...logData.photoUrls]; // 從現有的 URLs 開始
+      const uploadedUrls = [...logData.photoUrls];
 
       try {
         for (let i = 0; i < selectedFiles.length; i++) {
@@ -112,7 +115,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
                   fileData: reader.result,
                   fileName: file.name,
                   date: logData.date,
-                  project: logData.project, // 新增案場名稱
+                  project: logData.project,
                 };
                 const uploadResult = await postRequest('uploadImage', payload);
                 if (uploadResult.status === 'success') {
@@ -128,20 +131,20 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
           });
 
           uploadedUrls.push(result.url);
-          folderUrl = result.folderUrl; // 每次都更新 folderUrl
+          folderUrl = result.folderUrl;
           setUploadProgress(((i + 1) / selectedFiles.length) * 100);
         }
         
-        // 上傳成功後，用最新的資料準備提交
+        // 步驟 4: 上傳成功後，直接呼叫 onSubmit 提交最終資料
         const finalLogData = { 
           ...logData, 
           photoUrls: uploadedUrls, 
-          folderUrl: folderUrl || logData.folderUrl // 如果 folderUrl 是空的，保留舊的
+          folderUrl: folderUrl || logData.folderUrl
         };
+        const timeSlot = `${finalLogData.startTime}-${finalLogData.endTime}`;
+        onSubmit({ ...finalLogData, user, timeSlot });
 
-        // 直接觸發提交
-        handleSubmit(finalLogData);
-        setSelectedFiles([]); // 清空已選擇的檔案
+        setSelectedFiles([]);
 
       } catch (error) {
         console.error("上傳或提交過程中發生錯誤:", error);
@@ -168,14 +171,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
       if (!data.content.trim()) newErrors.content = '必須填寫工作內容';
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
-    };
-  
-    const handleSubmit = (dataToSubmit) => {
-      const finalData = dataToSubmit || logData;
-      if (validate(finalData)) { // 使用傳入的資料進行驗證
-        const timeSlot = `${finalData.startTime}-${finalData.endTime}`;
-        onSubmit({ ...finalData, user, timeSlot });
-      }
     };
   
       return (
