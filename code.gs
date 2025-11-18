@@ -165,7 +165,8 @@ function getProjects() {
   return getSheetData("專案", (row) => ({
     projectName: row[0],
     term: row[1],
-    engineeringItem: row[2]
+    engineeringItem: row[2],
+    address: row[3] // 新增地址欄位 (D欄)
   })); 
 }
 
