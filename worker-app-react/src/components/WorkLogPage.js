@@ -30,6 +30,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
 
   const termOptions = useMemo(() => {
     if (!logData.project || !projects) return [];
+    // 依賴的 projects 是完整的物件陣列，但 logData.project 現在是字串
     const relatedProjects = projects.filter(p => p.projectName === logData.project && p.term && p.engineeringItem);
     // 使用 reduce 確保選項唯一性
     const uniqueOptions = relatedProjects.reduce((acc, p) => {
@@ -62,6 +63,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
   };
 
     const handleProjectChange = (event, newValue) => {
+      // 直接儲存專案名稱字串，而不是整個物件
       setLogData(prev => ({ ...prev, project: newValue || '', term: '', engineeringItem: '' }));
     };
   
@@ -183,10 +185,9 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
                     <Autocomplete 
                       fullWidth 
                       options={projectOptions} 
-                      value={logData.project || null} // 確保 value 不是 undefined
+                      value={logData.project} // 直接使用字串 value
                       onChange={handleProjectChange}
                       isOptionEqualToValue={(option, value) => option === value}
-                      sx={{ width: 200 }} // 設定固定寬度
                       renderInput={(params) => (<TextField {...params} label="案場" error={!!errors.project} helperText={errors.project} />)} 
                     />          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
             <FormControl fullWidth error={!!errors.startTime}>
