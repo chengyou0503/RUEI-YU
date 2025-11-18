@@ -253,13 +253,22 @@ function submitWorkLog(payload) {
 
 function uploadImage(payload) {
   try {
-    const { fileData, fileName, date } = payload;
+    // 新增 project 參數
+    const { fileData, fileName, date, project } = payload;
+    if (!project) {
+      throw new Error("缺少必要的 'project' 參數。");
+    }
+
     const decodedData = Utilities.base64Decode(fileData.split(',')[1]);
     const blob = Utilities.newBlob(decodedData, MimeType.JPEG, fileName);
 
     const rootFolderId = "1i3mr6IRKwxJcp-qOV3Y9MUmmUTxbqiC3";
     const rootFolder = DriveApp.getFolderById(rootFolderId);
-    const dateFolder = getOrCreateFolder(rootFolder, date);
+    
+    // 第一層：案場資料夾
+    const projectFolder = getOrCreateFolder(rootFolder, project);
+    // 第二層：日期資料夾
+    const dateFolder = getOrCreateFolder(projectFolder, date);
 
     const file = dateFolder.createFile(blob);
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
@@ -267,7 +276,7 @@ function uploadImage(payload) {
     return createJsonResponse({ 
       status: 'success', 
       url: file.getUrl(),
-      folderUrl: dateFolder.getUrl()
+      folderUrl: dateFolder.getUrl() // 維持回傳最內層資料夾的 URL
     });
   } catch (error) {
     // logToSheet('uploadImage CATCH', { error: error.toString(), stack: error.stack });

@@ -37,6 +37,17 @@ function App() {
   const [returns, setReturns] = useState([]);
   const [logs, setLogs] = useState([]);
 
+  // 新增：禁用右鍵選單的副作用
+  useEffect(() => {
+    const handleContextMenu = (e) => {
+      e.preventDefault();
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+    };
+  }, []);
+
   const fetchData = async (action, isBackground = false) => {
     if (!isBackground) {
       setLoading(true);

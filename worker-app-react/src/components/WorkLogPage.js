@@ -112,6 +112,7 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
                   fileData: reader.result,
                   fileName: file.name,
                   date: logData.date,
+                  project: logData.project, // 新增案場名稱
                 };
                 const uploadResult = await postRequest('uploadImage', payload);
                 if (uploadResult.status === 'success') {
