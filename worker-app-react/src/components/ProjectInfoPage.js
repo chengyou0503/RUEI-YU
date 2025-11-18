@@ -4,6 +4,7 @@ import { Box, Typography, Select, MenuItem, Button, FormControl, InputLabel, Tex
 const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUsers }) => {
   const [data, setData] = useState({
     project: formData.project || '',
+    term: formData.term || '', // 新增期數
     deliveryAddress: formData.deliveryAddress || '',
     deliveryDate: formData.deliveryDate || '',
     recipientName: formData.recipientName || '',
@@ -36,6 +37,7 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
   const validate = () => {
     const newErrors = {};
     if (!data.project) newErrors.project = '必須選擇專案';
+    if (!data.term) newErrors.term = '必須填寫期數'; // 新增驗證
     if (!data.deliveryAddress) newErrors.deliveryAddress = '必須填寫送貨地點';
     if (!data.deliveryDate) newErrors.deliveryDate = '必須選擇送貨日期';
     if (!formData.userPhone) newErrors.userPhone = '必須填寫申請人電話';
@@ -71,6 +73,8 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
             {projects.map((p, i) => <MenuItem key={i} value={p}>{p}</MenuItem>)}
           </Select>
         </FormControl>
+
+        <TextField name="term" label="期數" fullWidth value={data.term} onChange={handleChange} error={!!errors.term} helperText={errors.term} />
         
         <TextField name="deliveryAddress" label="送貨地點" fullWidth value={data.deliveryAddress} onChange={handleChange} error={!!errors.deliveryAddress} helperText={errors.deliveryAddress} />
         

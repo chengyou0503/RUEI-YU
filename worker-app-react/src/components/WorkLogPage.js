@@ -44,13 +44,14 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
 
   const generateTimeOptions = () => {
     const times = [];
-    for (let h = 8; h <= 18; h++) {
+    for (let h = 6; h <= 23; h++) { // 從早上 6 點到晚上 11 點
       for (let m = 0; m < 60; m += 30) {
         const hour = String(h).padStart(2, '0');
         const minute = String(m).padStart(2, '0');
         times.push(`${hour}:${minute}`);
       }
     }
+    times.push('00:00'); // 加上午夜 12 點
     return times;
   };
   const timeOptions = useMemo(() => generateTimeOptions(), []);
@@ -85,76 +86,94 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
     };
   
     const handleUpload = async () => {
-      if (selectedFiles.length === 0) return;
+      if (selectedFiles.length === 0) {
+        // 如果沒有選擇檔案，但使用者可能想提交沒有照片的日誌
+        handleSubmit(logData);
+        return;
+      }
+      
+      if (!validate()) return; // 在上傳前也進行一次驗證
+
       setIsUploading(true);
       setUploadProgress(0);
   
       let folderUrl = '';
-      const uploadedUrls = [];
+      const uploadedUrls = [...logData.photoUrls]; // 從現有的 URLs 開始
 
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const { file } = selectedFiles[i];
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        await new Promise((resolve, reject) => {
-          reader.onload = async () => {
-            try {
-              const payload = {
-                fileData: reader.result,
-                fileName: file.name,
-                date: logData.date,
-              };
-              
-              // **修正：使用傳入的 postRequest 函式**
-              const result = await postRequest('uploadImage', payload);
-
-              if (result.status === 'success') {
-                uploadedUrls.push(result.url);
-                folderUrl = result.folderUrl;
-              } else {
-                throw new Error(result.message || '上傳失敗');
+      try {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const { file } = selectedFiles[i];
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          const result = await new Promise((resolve, reject) => {
+            reader.onload = async () => {
+              try {
+                const payload = {
+                  fileData: reader.result,
+                  fileName: file.name,
+                  date: logData.date,
+                };
+                const uploadResult = await postRequest('uploadImage', payload);
+                if (uploadResult.status === 'success') {
+                  resolve(uploadResult);
+                } else {
+                  reject(new Error(uploadResult.message || '上傳失敗'));
+                }
+              } catch (error) {
+                reject(error);
               }
+            };
+            reader.onerror = reject;
+          });
 
-              setUploadProgress(((i + 1) / selectedFiles.length) * 100);
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          };
-          reader.onerror = reject;
-        });
+          uploadedUrls.push(result.url);
+          folderUrl = result.folderUrl; // 每次都更新 folderUrl
+          setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+        }
+        
+        // 上傳成功後，用最新的資料準備提交
+        const finalLogData = { 
+          ...logData, 
+          photoUrls: uploadedUrls, 
+          folderUrl: folderUrl || logData.folderUrl // 如果 folderUrl 是空的，保留舊的
+        };
+
+        // 直接觸發提交
+        handleSubmit(finalLogData);
+        setSelectedFiles([]); // 清空已選擇的檔案
+
+      } catch (error) {
+        console.error("上傳或提交過程中發生錯誤:", error);
+        alert(`處理失敗: ${error.message}`);
+      } finally {
+        setIsUploading(false);
       }
-      
-      setLogData(prev => ({ ...prev, photoUrls: [...prev.photoUrls, ...uploadedUrls], folderUrl }));
-      setSelectedFiles([]);
-      setIsUploading(false);
-      alert('所有照片已上傳完畢，請點擊「提交日誌」以儲存。');
     };
     
     const handleRemoveFile = (previewUrl) => {
       setSelectedFiles(prev => prev.filter(f => f.preview !== previewUrl));
     };
   
-    const validate = () => {
+    const validate = (data = logData) => {
       const newErrors = {};
-      if (!logData.date) newErrors.date = '必須選擇日期';
-      if (!logData.project) newErrors.project = '必須選擇案場';
-      if (!logData.term) newErrors.term = '必須選擇期數';
-      if (!logData.startTime) newErrors.startTime = '必須選擇開始時間';
-      if (!logData.endTime) newErrors.endTime = '必須選擇結束時間';
-      if (logData.startTime && logData.endTime && logData.startTime >= logData.endTime) {
+      if (!data.date) newErrors.date = '必須選擇日期';
+      if (!data.project) newErrors.project = '必須選擇案場';
+      if (!data.term) newErrors.term = '必須選擇期數';
+      if (!data.startTime) newErrors.startTime = '必須選擇開始時間';
+      if (!data.endTime) newErrors.endTime = '必須選擇結束時間';
+      if (data.startTime && data.endTime && data.startTime >= data.endTime) {
         newErrors.endTime = '結束時間必須晚於開始時間';
       }
-      if (!logData.content.trim()) newErrors.content = '必須填寫工作內容';
+      if (!data.content.trim()) newErrors.content = '必須填寫工作內容';
       setErrors(newErrors);
       return Object.keys(newErrors).length === 0;
     };
   
-    const handleSubmit = () => {
-      if (validate()) {
-        const timeSlot = `${logData.startTime}-${logData.endTime}`;
-        // **重要：確保 photoUrls 和 folderUrl 被包含在提交的資料中**
-        onSubmit({ ...logData, user, timeSlot });
+    const handleSubmit = (dataToSubmit) => {
+      const finalData = dataToSubmit || logData;
+      if (validate(finalData)) { // 使用傳入的資料進行驗證
+        const timeSlot = `${finalData.startTime}-${finalData.endTime}`;
+        onSubmit({ ...finalData, user, timeSlot });
       }
     };
   
@@ -218,11 +237,6 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
             選擇照片
             <input type="file" hidden multiple accept="image/*" onChange={handleFileChange} />
           </Button>
-          {selectedFiles.length > 0 && (
-            <Button onClick={handleUpload} disabled={isUploading} sx={{ ml: 2 }}>
-              {isUploading ? '上傳中...' : `上傳 ${selectedFiles.length} 張照片`}
-            </Button>
-          )}
           {isUploading && (
             <Box sx={{ width: '100%', mt: 2 }}>
               <LinearProgress variant="determinate" value={uploadProgress} />
@@ -248,8 +262,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
         <Button variant="outlined" onClick={() => navigateTo(1)} disabled={isSubmitting || isUploading}>
           返回主選單
         </Button>
-        <Button variant="contained" color="primary" onClick={handleSubmit} disabled={isSubmitting || isUploading} startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}>
-          {isSubmitting ? '傳送中...' : '提交日誌'}
+        <Button variant="contained" color="primary" onClick={handleUpload} disabled={isSubmitting || isUploading} startIcon={isSubmitting || isUploading ? <CircularProgress size={20} color="inherit" /> : null}>
+          {isUploading ? '上傳中...' : (selectedFiles.length > 0 ? '上傳並提交' : '提交日誌')}
         </Button>
       </Box>
     </Paper>

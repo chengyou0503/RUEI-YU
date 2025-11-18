@@ -5,7 +5,7 @@ import RequestCard from './components/RequestCard';
 import ReturnCard from '././components/ReturnCard';
 import LogCard from './components/LogCard';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby8Fjt3jDfAhfL9WQvVk6bWVgdNsXUAi3xDfcJ5tmcbU6UwR2h0e32KIsj9Yyt7TCcSyQ/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby5M6AjMBJJ2A0BRnp4CwFUKly55KaNBDnNE_LFjSQey79TsG0Bd8i_U7swrNEHsiNbgQ/exec';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;

@@ -82,15 +82,15 @@ function getRequests() {
       const id = row[0];
       if (!id) return acc;
       const item = { 
-        category: row[9], 
-        subcategory: row[10], 
-        thickness: row[11], 
-        size: row[12], 
-        quantity: row[13], 
-        unit: row[14], 
-        status: row[15] || '待處理' 
+        category: row[10], 
+        subcategory: row[11], 
+        thickness: row[12], 
+        size: row[13], 
+        quantity: row[14], 
+        unit: row[15], 
+        status: row[16] || '待處理' 
       };
-      if (!acc[id]) acc[id] = { id: id, timestamp: row[1], project: row[2], deliveryAddress: row[3], deliveryDate: row[4], user: row[5], userPhone: row[6], recipientName: row[7], recipientPhone: row[8], items: [] };
+      if (!acc[id]) acc[id] = { id: id, timestamp: row[1], project: row[2], term: row[3], deliveryAddress: row[4], deliveryDate: row[5], user: row[6], userPhone: row[7], recipientName: row[8], recipientPhone: row[9], items: [] };
       acc[id].items.push(item);
       return acc;
     }, {});
@@ -185,7 +185,7 @@ function submitRequest(payload) {
     const newRows = payload.items.map(item => {
       const userPhone = `'${payload.userPhone}`;
       const recipientPhone = `'${payload.recipientPhone}`;
-      return [ newId, timestamp, payload.project, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
+      return [ newId, timestamp, payload.project, payload.term, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
     });
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
     lock.releaseLock();

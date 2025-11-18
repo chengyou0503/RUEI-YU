@@ -5,10 +5,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const ReturnPage = ({ projects, items, returnCart, updateReturnCart, navigateTo, formData, updateFormData, onSubmit, isSubmitting }) => {
   const [currentItem, setCurrentItem] = useState(null);
-  // **UI Bug 修正：預設為 '1'**
   const [currentQuantity, setCurrentQuantity] = useState('1');
   const [currentReason, setCurrentReason] = useState('');
   const [errors, setErrors] = useState({});
+  const [inputValue, setInputValue] = useState(''); // 新增 state 來追蹤輸入文字
 
   const uniqueItems = useMemo(() => {
     const seen = new Set();
@@ -21,6 +21,16 @@ const ReturnPage = ({ projects, items, returnCart, updateReturnCart, navigateTo,
       return null;
     }).filter(Boolean);
   }, [items]);
+
+  // 根據輸入文字動態篩選選項
+  const filteredOptions = useMemo(() => {
+    if (inputValue.trim() === '') {
+      return []; // 如果沒有輸入，不顯示任何選項
+    }
+    return uniqueItems.filter(item =>
+      item.label.toLowerCase().includes(inputValue.toLowerCase())
+    );
+  }, [inputValue, uniqueItems]);
 
   const handleAddItem = () => {
     const quantity = parseInt(currentQuantity, 10);
@@ -36,8 +46,8 @@ const ReturnPage = ({ projects, items, returnCart, updateReturnCart, navigateTo,
     };
     updateReturnCart([...returnCart, newItem]);
     
-    // **UX 優化：自動清空**
-    setCurrentItem('');
+    setCurrentItem(null); // 清空 Autocomplete
+    setInputValue(''); // 清空輸入文字
     setCurrentQuantity('1');
     setCurrentReason('');
   };
@@ -74,18 +84,21 @@ const ReturnPage = ({ projects, items, returnCart, updateReturnCart, navigateTo,
         <Typography variant="h6" sx={{ mt: 2, mb: -1 }}>新增退貨品項</Typography>
         <Autocomplete
           freeSolo
-          options={uniqueItems}
+          options={filteredOptions} // 使用篩選後的選項
           getOptionLabel={(option) => (typeof option === 'string' ? option : option.label) || ''}
           value={currentItem}
           onChange={(event, newValue) => setCurrentItem(newValue)}
-          renderInput={(params) => <TextField {...params} label="搜尋或手動輸入退貨品項" />}
+          inputValue={inputValue}
+          onInputChange={(event, newInputValue) => {
+            setInputValue(newInputValue);
+          }}
+          renderInput={(params) => <TextField {...params} label="請輸入文字以搜尋品項" />}
         />
         <Stack direction="row" spacing={2} alignItems="flex-start">
           <TextField
             label="數量"
             type="number"
             value={currentQuantity}
-            // **UI Bug 修正：允許清空**
             onChange={(e) => setCurrentQuantity(e.target.value)}
             sx={{ width: '100px' }}
           />
