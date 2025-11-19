@@ -53,7 +53,10 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
                 const uniqueItemId = `return-${ret.id}-${item.name}`;
                 const isUpdating = updatingId === uniqueItemId;
                 return (
-                  <TableRow key={index}>
+                  <TableRow 
+                    key={index}
+                    sx={{ '&:nth-of-type(odd)': { backgroundColor: (theme) => theme.palette.action.hover } }}
+                  >
                     <TableCell align="center">{item.name}</TableCell>
                     <TableCell align="center">{item.quantity}</TableCell>
                     <TableCell align="center">{item.reason}</TableCell>

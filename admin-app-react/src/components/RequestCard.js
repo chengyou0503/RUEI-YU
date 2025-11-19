@@ -60,32 +60,34 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
                 const uniqueItemId = `${request.id}-${item.subcategory}-${item.thickness}-${item.size}`;
                 const isUpdating = updatingId === uniqueItemId;
                 return (
-                  <TableRow key={index}>
-                    <TableCell align="center">{item.category} - {item.subcategory}</TableCell>
-                    <TableCell align="center">{item.thickness}</TableCell>
-                    <TableCell align="center">{item.size}</TableCell>
-                    <TableCell align="center">{item.quantity}</TableCell>
-                    <TableCell align="center">{item.unit}</TableCell>
-                    <TableCell align="center">
-                      <Select
-                        value={item.status}
-                        onChange={(e) => handleItemStatusChange(e, item)}
-                        disabled={isUpdating}
-                        size="small"
-                        sx={{
-                          minWidth: 120,
-                          backgroundColor: item.status.trim() === '完成' ? '#e8f5e9' : 'inherit',
-                          color: item.status.trim() === '完成' ? '#2e7d32' : 'inherit',
-                        }}
-                      >
-                        <MenuItem value="待處理">
-                          {isUpdating ? <CircularProgress size={20} /> : '待處理'}
-                        </MenuItem>
-                        <MenuItem value="完成">完成</MenuItem>
-                      </Select>
-                    </TableCell>
-                  </TableRow>
-                );
+                                    <TableRow 
+                                      key={index}
+                                      sx={{ '&:nth-of-type(odd)': { backgroundColor: (theme) => theme.palette.action.hover } }}
+                                    >
+                                      <TableCell align="center">{item.category} - {item.subcategory}</TableCell>
+                                      <TableCell align="center">{item.thickness}</TableCell>
+                                      <TableCell align="center">{item.size}</TableCell>
+                                      <TableCell align="center">{item.quantity}</TableCell>
+                                      <TableCell align="center">{item.unit}</TableCell>
+                                      <TableCell align="center">
+                                        <Select
+                                          value={item.status}
+                                          onChange={(e) => handleItemStatusChange(e, item)}
+                                          disabled={isUpdating}
+                                          size="small"
+                                          sx={{ 
+                                            minWidth: 120,
+                                            backgroundColor: item.status.trim() === '完成' ? '#e8f5e9' : 'inherit',
+                                            color: item.status.trim() === '完成' ? '#2e7d32' : 'inherit',
+                                          }}
+                                        >
+                                          <MenuItem value="待處理">
+                                            {isUpdating ? <CircularProgress size={20} /> : '待處理'}
+                                          </MenuItem>
+                                          <MenuItem value="完成">完成</MenuItem>
+                                        </Select>
+                                      </TableCell>
+                                    </TableRow>                );
               })}
             </TableBody>
           </Table>
