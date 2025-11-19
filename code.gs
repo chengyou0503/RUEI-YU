@@ -81,16 +81,32 @@ function getRequests() {
     const requestsById = values.reduce((acc, row) => {
       const id = row[0];
       if (!id) return acc;
+      // 根據最新的欄位順序更新索引
       const item = { 
-        category: row[10], 
-        subcategory: row[11], 
-        thickness: row[12], 
-        size: row[13], 
-        quantity: row[14], 
-        unit: row[15], 
-        status: row[16] || '待處理' 
+        category: row[11],       // L 欄
+        subcategory: row[12],    // M 欄
+        thickness: row[13],      // N 欄
+        size: row[14],           // O 欄
+        quantity: row[15],       // P 欄
+        unit: row[16],           // Q 欄
+        status: row[17] || '待處理' // R 欄
       };
-      if (!acc[id]) acc[id] = { id: id, timestamp: row[1], project: row[2], term: row[3], deliveryAddress: row[4], deliveryDate: row[5], user: row[6], userPhone: row[7], recipientName: row[8], recipientPhone: row[9], items: [] };
+      if (!acc[id]) {
+        acc[id] = { 
+          id: id,                 // A 欄
+          timestamp: row[1],      // B 欄
+          project: row[2],        // C 欄
+          term: row[3],           // D 欄
+          engineeringItem: row[4],// E 欄
+          deliveryAddress: row[5],// F 欄
+          deliveryDate: row[6],   // G 欄
+          user: row[7],           // H 欄
+          userPhone: row[8],      // I 欄
+          recipientName: row[9],  // J 欄
+          recipientPhone: row[10],// K 欄
+          items: [] 
+        };
+      }
       acc[id].items.push(item);
       return acc;
     }, {});
