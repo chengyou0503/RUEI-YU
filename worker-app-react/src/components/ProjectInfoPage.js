@@ -72,8 +72,13 @@ const ProjectInfoPage = ({ projects, formData, updateFormData, navigateTo, allUs
 
   const handleNext = () => {
     if (validate()) {
-      // 提交時，只提交專案名稱
-      updateFormData({ ...data, project: data.project.projectName, userPhone: formData.userPhone });
+      // 提交時，確保傳遞 project 名稱和 engineeringItem
+      updateFormData({ 
+        ...data, 
+        project: data.project.projectName, 
+        engineeringItem: data.engineeringItem, // 明確傳遞
+        userPhone: formData.userPhone 
+      });
       navigateTo(3);
     }
   };

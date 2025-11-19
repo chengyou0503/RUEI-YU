@@ -189,7 +189,7 @@ function submitRequest(payload) {
     const newRows = payload.items.map(item => {
       const userPhone = `'${payload.userPhone}`;
       const recipientPhone = `'${payload.recipientPhone}`;
-      return [ newId, timestamp, payload.project, payload.term, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
+      return [ newId, timestamp, payload.project, payload.term, payload.engineeringItem, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
     });
     sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
     lock.releaseLock();
