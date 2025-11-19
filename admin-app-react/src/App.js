@@ -31,11 +31,12 @@ function App() {
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false); // 新增：背景刷新狀態
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [requests, setRequests] = useState([]);
   const [returns, setReturns] = useState([]);
   const [logs, setLogs] = useState([]);
+  const [updatingId, setUpdatingId] = useState(null); // 新增：追蹤正在更新的項目 ID
 
   const fetchData = async (action, isBackground = false) => {
     if (!isBackground) {
@@ -45,9 +46,7 @@ function App() {
     }
     setError(null);
     try {
-      // **重構：使用 postRequest 來獲取資料**
-      const data = await postRequest('getData', { sub_action: action }, true); // 新增一個參數來抑制 loading 狀態
-
+      const data = await postRequest('getData', { sub_action: action }, true);
       if (data.status === 'error') throw new Error(data.message);
       
       switch(action) {
@@ -79,12 +78,12 @@ function App() {
     const currentAction = actions[tabValue];
 
     if (currentAction) {
-      fetchData(currentAction, false); // 立即獲取一次資料 (非背景)
+      fetchData(currentAction, false);
       const intervalId = setInterval(() => {
-        fetchData(currentAction, true); // 每 15 秒輪詢一次 (背景)
+        fetchData(currentAction, true);
       }, 15000); 
 
-      return () => clearInterval(intervalId); // 清除計時器
+      return () => clearInterval(intervalId);
     }
   }, [tabValue]);
 
@@ -94,11 +93,11 @@ function App() {
 
   const handleRefresh = () => {
     const actions = ['getRequests', 'getReturns', 'getWorkLogs'];
-    fetchData(actions[tabValue], false); // 手動刷新視為非背景
+    fetchData(actions[tabValue], false);
   }
 
   const postRequest = async (action, payload, isGetData = false) => {
-    if (!isGetData) { // 如果不是獲取資料的請求，才設定 refreshing 狀態
+    if (!isGetData) {
       setIsRefreshing(true);
     }
     setError(null);
@@ -115,12 +114,11 @@ function App() {
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
-      // **修改：讓 postRequest 能夠回傳 JSON 資料**
       const result = await response.json();
       return result;
 
     } catch (e) {
-      console.error(`[postRequest Error] Action: ${action}, Payload:`, payload, "Error:", e); // 新增詳細的 console.error
+      // console.error(`[postRequest Error] Action: ${action}, Payload:`, payload, "Error:", e);
       setError(`請求失敗: ${e.message}`);
       return { status: 'error', message: e.message };
     } finally {
@@ -131,38 +129,52 @@ function App() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
-    // console.log(`[Request] Action: updateStatus, Payload:`, { id: orderId, newStatus });
-    const result = await postRequest('updateStatus', { id: orderId, newStatus });
-    // console.log(`[Response] Action: updateStatus, Result:`, result);
-    if (result.status === 'success') {
-      fetchData('getRequests', true);
+    setUpdatingId(orderId); // 開始更新
+    try {
+      const result = await postRequest('updateStatus', { id: orderId, newStatus });
+      if (result.status === 'success') {
+        fetchData('getRequests', true);
+      }
+    } finally {
+      setUpdatingId(null); // 結束更新
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
-    // console.log(`[Request] Action: updateItemStatus, Payload:`, payload);
-    const result = await postRequest('updateItemStatus', payload);
-    // console.log(`[Response] Action: updateItemStatus, Result:`, result);
-    if (result.status === 'success') {
-      fetchData('getRequests', true);
+    const uniqueId = `${payload.orderId}-${payload.itemName}-${payload.thickness}-${payload.size}`;
+    setUpdatingId(uniqueId); // 開始更新
+    try {
+      const result = await postRequest('updateItemStatus', payload);
+      if (result.status === 'success') {
+        fetchData('getRequests', true);
+      }
+    } finally {
+      setUpdatingId(null); // 結束更新
     }
   };
 
   const handleUpdateReturnStatus = async (returnId, newStatus) => {
-    // console.log(`[Request] Action: updateReturnStatus, Payload:`, { id: returnId, newStatus });
-    const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
-    // console.log(`[Response] Action: updateReturnStatus, Result:`, result);
-    if (result.status === 'success') {
-      fetchData('getReturns', true);
+    setUpdatingId(`return-${returnId}`); // 開始更新
+    try {
+      const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
+      if (result.status === 'success') {
+        fetchData('getReturns', true);
+      }
+    } finally {
+      setUpdatingId(null); // 結束更新
     }
   };
 
   const handleUpdateReturnItemStatus = async (payload) => {
-    // console.log(`[Request] Action: updateReturnItemStatus, Payload:`, payload);
-    const result = await postRequest('updateReturnItemStatus', payload);
-    // console.log(`[Response] Action: updateReturnItemStatus, Result:`, result);
-    if (result.status === 'success') {
-      fetchData('getReturns', true);
+    const uniqueId = `return-${payload.returnId}-${payload.itemName}`;
+    setUpdatingId(uniqueId); // 開始更新
+    try {
+      const result = await postRequest('updateReturnItemStatus', payload);
+      if (result.status === 'success') {
+        fetchData('getReturns', true);
+      }
+    } finally {
+      setUpdatingId(null); // 結束更新
     }
   };
 
@@ -200,6 +212,7 @@ function App() {
               request={req} 
               onUpdateStatus={handleUpdateStatus}
               onUpdateItemStatus={handleUpdateItemStatus}
+              updatingId={updatingId} // 傳遞 updatingId
             />
           ))
         ) : (
@@ -216,6 +229,7 @@ function App() {
               ret={ret} 
               onUpdateStatus={handleUpdateReturnStatus}
               onUpdateItemStatus={handleUpdateReturnItemStatus}
+              updatingId={updatingId} // 傳遞 updatingId
             />
           )
         ) : (
