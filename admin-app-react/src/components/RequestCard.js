@@ -1,7 +1,8 @@
-import React from 'react';
-import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, Button } from '@mui/material';
+import React, { useState } from 'react';
+import { Card, CardContent, Typography, Box, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, Button, CircularProgress } from '@mui/material';
 
 const RequestCard = ({ request, onUpdateStatus, onUpdateItemStatus }) => {
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleItemStatusChange = (e, item) => {
     const newStatus = e.target.value;
@@ -14,6 +15,15 @@ const RequestCard = ({ request, onUpdateStatus, onUpdateItemStatus }) => {
     });
   };
 
+  const handleUpdateAll = async () => {
+    setIsUpdating(true);
+    try {
+      await onUpdateStatus(request.id, '完成');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
@@ -24,9 +34,11 @@ const RequestCard = ({ request, onUpdateStatus, onUpdateItemStatus }) => {
           <Button 
             variant="contained" 
             size="small"
-            onClick={() => onUpdateStatus(request.id, '完成')}
+            onClick={handleUpdateAll}
+            disabled={isUpdating}
+            startIcon={isUpdating ? <CircularProgress size={16} color="inherit" /> : null}
           >
-            全部完成
+            {isUpdating ? '更新中...' : '全部完成'}
           </Button>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -67,8 +79,8 @@ const RequestCard = ({ request, onUpdateStatus, onUpdateItemStatus }) => {
                       onChange={(e) => handleItemStatusChange(e, item)}
                       size="small"
                       sx={{ 
-                        backgroundColor: item.status === '完成' ? '#e8f5e9' : 'inherit',
-                        color: item.status === '完成' ? '#2e7d32' : 'inherit'
+                        backgroundColor: item.status.trim() === '完成' ? '#e8f5e9' : 'inherit',
+                        color: item.status.trim() === '完成' ? '#2e7d32' : 'inherit'
                       }}
                     >
                       <MenuItem value="待處理">待處理</MenuItem>

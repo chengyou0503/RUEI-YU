@@ -199,8 +199,8 @@ function App() {
     }
   };
 
-  const pendingRequests = requests.filter(req => req.items && req.items.some(item => item.status !== '完成'));
-  const pendingReturns = returns.filter(ret => ret.items && ret.items.some(item => item.status !== '完成'));
+  const pendingRequests = requests.filter(req => req.items && req.items.some(item => item.status.trim() !== '完成'));
+  const pendingReturns = returns.filter(ret => ret.items && ret.items.some(item => item.status.trim() !== '完成'));
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 2, md: 4 } }}>
