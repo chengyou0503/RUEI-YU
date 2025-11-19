@@ -27,12 +27,14 @@ const MainMenu = ({ formData, navigateTo }) => {
                 disabled={item.disabled}
                 sx={{
                   display: 'flex', flexDirection: 'column',
-                  justifyContent: 'center', p: 3, height: '100%'
+                  justifyContent: 'center', 
+                  p: { xs: 2, sm: 3 }, // 手機上 padding 較小
+                  height: '100%'
                 }}
               >
-                {item.icon}
+                {React.cloneElement(item.icon, { sx: { fontSize: { xs: 32, sm: 40 } } })}
                 <CardContent>
-                  <Typography variant="h6" component="div">{item.title}</Typography>
+                  <Typography variant="h6" component="div" sx={{ fontSize: { xs: '1.1rem', sm: '1.25rem' } }}>{item.title}</Typography>
                   {item.disabled && <Typography variant="caption" color="text.secondary">(開發中)</Typography>}
                 </CardContent>
               </CardActionArea>

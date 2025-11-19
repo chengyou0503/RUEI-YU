@@ -126,10 +126,13 @@ function getWorkLogs() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
     const values = sheet.getDataRange().getDisplayValues();
-    // logToSheet('getWorkLogs', { message: "成功讀取到原始 values", data: values });
     values.shift(); 
     if (values.length === 0) return [];
-    const logs = values.map(row => ({
+    
+    // 新增過濾條件：只處理第一欄（ID）不為空的資料列
+    const filteredValues = values.filter(row => row[0] && row[0].toString().trim() !== '');
+
+    const logs = filteredValues.map(row => ({
       id: row[0],
       timestamp: row[1],
       date: row[2],
