@@ -131,42 +131,36 @@ function App() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
-    const action = 'updateStatus';
-    const payload = { id: orderId, newStatus };
-    console.log(`[Request] Action: ${action}, Payload:`, payload);
-    const result = await postRequest(action, payload);
-    console.log(`[Response] Action: ${action}, Result:`, result);
+    // console.log(`[Request] Action: updateStatus, Payload:`, { id: orderId, newStatus });
+    const result = await postRequest('updateStatus', { id: orderId, newStatus });
+    // console.log(`[Response] Action: updateStatus, Result:`, result);
     if (result.status === 'success') {
       fetchData('getRequests', true);
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
-    const action = 'updateItemStatus';
-    console.log(`[Request] Action: ${action}, Payload:`, payload);
-    const result = await postRequest(action, payload);
-    console.log(`[Response] Action: ${action}, Result:`, result);
+    // console.log(`[Request] Action: updateItemStatus, Payload:`, payload);
+    const result = await postRequest('updateItemStatus', payload);
+    // console.log(`[Response] Action: updateItemStatus, Result:`, result);
     if (result.status === 'success') {
       fetchData('getRequests', true);
     }
   };
 
   const handleUpdateReturnStatus = async (returnId, newStatus) => {
-    const action = 'updateReturnStatus';
-    const payload = { id: returnId, newStatus };
-    console.log(`[Request] Action: ${action}, Payload:`, payload);
-    const result = await postRequest(action, payload);
-    console.log(`[Response] Action: ${action}, Result:`, result);
+    // console.log(`[Request] Action: updateReturnStatus, Payload:`, { id: returnId, newStatus });
+    const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
+    // console.log(`[Response] Action: updateReturnStatus, Result:`, result);
     if (result.status === 'success') {
       fetchData('getReturns', true);
     }
   };
 
   const handleUpdateReturnItemStatus = async (payload) => {
-    const action = 'updateReturnItemStatus';
-    console.log(`[Request] Action: ${action}, Payload:`, payload);
-    const result = await postRequest(action, payload);
-    console.log(`[Response] Action: ${action}, Result:`, result);
+    // console.log(`[Request] Action: updateReturnItemStatus, Payload:`, payload);
+    const result = await postRequest('updateReturnItemStatus', payload);
+    // console.log(`[Response] Action: updateReturnItemStatus, Result:`, result);
     if (result.status === 'success') {
       fetchData('getReturns', true);
     }
