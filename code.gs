@@ -22,7 +22,7 @@ function doGet(e) {
       .setMimeType(ContentService.MimeType.JSON)
       .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
   } catch (error) {
-    // logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
+    logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() }))
       .setMimeType(ContentService.MimeType.JSON)
       .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
