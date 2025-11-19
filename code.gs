@@ -72,16 +72,16 @@ function getRequests() {
     const requestsById = values.reduce((acc, row) => {
       const id = row[0];
       if (!id) return acc;
-      const item = { 
-        category: row[11],
-        subcategory: row[12],
-        thickness: row[13],
-        size: row[14],
-        quantity: row[15],
-        unit: row[16],
-        status: row[17] || '待處理'
-      };
-      if (!acc[id]) {
+            // 根據 code1.gs 的最終定義，修正所有品項的索引
+            const item = { 
+              category: row[11],       // L 欄: 大分類
+              subcategory: row[12],    // M 欄: 小分類
+              thickness: row[13],      // N 欄: 厚度
+              size: row[14],           // O 欄: 尺寸
+              quantity: row[15],       // P 欄: 數量
+              unit: row[16],           // Q 欄: 單位
+              status: row[17] || '待處理' // R 欄: 品項狀態
+            };      if (!acc[id]) {
         acc[id] = { 
           id: id,
           timestamp: row[1],
@@ -307,11 +307,12 @@ function updateItemStatus(payload) {
     const { orderId, itemName, newStatus, thickness, size } = payload;
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
-    const idCol = 0;
-    const nameCol = 12;
-    const thicknessCol = 13;
-    const sizeCol = 14;
-    const statusCol = 17;
+    // 根據 code1.gs 的最終定義，修正所有比對用的索引
+    const idCol = 0;         // A 欄
+    const nameCol = 12;        // M 欄 (小分類)
+    const thicknessCol = 13;   // N 欄 (厚度)
+    const sizeCol = 14;        // O 欄 (尺寸)
+    const statusCol = 17;      // R 欄 (品項狀態)
     let updated = false;
     for (let i = 1; i < data.length; i++) {
       const sheetItemName = data[i][nameCol] ? data[i][nameCol].toString().trim() : '';
