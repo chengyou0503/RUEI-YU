@@ -1,5 +1,5 @@
 function doGet(e) {
-  // logToSheet('doGet', { message: "函式被呼叫", eventObject: e });
+  // // logToSheet('doGet', { message: "函式被呼叫", eventObject: e });
   try {
     const action = e.parameter.action;
     const callback = e.parameter.callback;
@@ -27,7 +27,7 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  // logToSheet('doPost', { message: "函式被呼叫", eventObject: e });
+  // // logToSheet('doPost', { message: "函式被呼叫", eventObject: e });
   try {
     const action = e.parameter.action;
     const payload = JSON.parse(e.parameter.payload);
