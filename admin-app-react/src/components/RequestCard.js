@@ -10,15 +10,13 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
 
   const handleItemStatusChange = (e, item) => {
     const newStatus = e.target.value;
-    if (newStatus === '完成') {
-      onUpdateItemStatus({
-        orderId: request.id,
-        itemName: item.subcategory,
-        thickness: item.thickness,
-        size: item.size,
-        newStatus: '完成'
-      });
-    }
+    onUpdateItemStatus({
+      orderId: request.id,
+      itemName: item.subcategory,
+      thickness: item.thickness,
+      size: item.size,
+      newStatus: newStatus // 直接使用新的狀態
+    });
   };
 
   return (
@@ -69,22 +67,22 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
                     <TableCell align="right">{item.quantity}</TableCell>
                     <TableCell>{item.unit}</TableCell>
                     <TableCell>
-                      {item.status.trim() === '完成' ? (
-                        <Typography variant="body2" sx={{ color: 'success.main' }}>完成</Typography>
-                      ) : (
-                        <Select
-                          value={item.status}
-                          onChange={(e) => handleItemStatusChange(e, item)}
-                          disabled={isUpdating}
-                          size="small"
-                          sx={{ minWidth: 120 }}
-                        >
-                          <MenuItem value="待處理">
-                            {isUpdating ? <CircularProgress size={20} /> : '待處理'}
-                          </MenuItem>
-                          <MenuItem value="完成">完成</MenuItem>
-                        </Select>
-                      )}
+                      <Select
+                        value={item.status}
+                        onChange={(e) => handleItemStatusChange(e, item)}
+                        disabled={isUpdating}
+                        size="small"
+                        sx={{ 
+                          minWidth: 120,
+                          backgroundColor: item.status.trim() === '完成' ? '#e8f5e9' : 'inherit',
+                          color: item.status.trim() === '完成' ? '#2e7d32' : 'inherit',
+                        }}
+                      >
+                        <MenuItem value="待處理">
+                          {isUpdating ? <CircularProgress size={20} /> : '待處理'}
+                        </MenuItem>
+                        <MenuItem value="完成">完成</MenuItem>
+                      </Select>
                     </TableCell>
                   </TableRow>
                 );
