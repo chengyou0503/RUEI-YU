@@ -13,7 +13,7 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
     onUpdateItemStatus({
       returnId: ret.id,
       itemName: item.name,
-      newStatus: newStatus // 直接使用新的狀態
+      newStatus: newStatus
     });
   };
 
@@ -42,10 +42,10 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>品項</TableCell>
-                <TableCell align="right">數量</TableCell>
-                <TableCell>退貨原因</TableCell>
-                <TableCell>狀態</TableCell>
+                <TableCell align="center">品項</TableCell>
+                <TableCell align="center">數量</TableCell>
+                <TableCell align="center">退貨原因</TableCell>
+                <TableCell align="center">狀態</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -54,10 +54,10 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
                 const isUpdating = updatingId === uniqueItemId;
                 return (
                   <TableRow key={index}>
-                    <TableCell>{item.name}</TableCell>
-                    <TableCell align="right">{item.quantity}</TableCell>
-                    <TableCell>{item.reason}</TableCell>
-                    <TableCell>
+                    <TableCell align="center">{item.name}</TableCell>
+                    <TableCell align="center">{item.quantity}</TableCell>
+                    <TableCell align="center">{item.reason}</TableCell>
+                    <TableCell align="center">
                       <Select
                         value={item.status}
                         onChange={(e) => handleItemStatusChange(e, item)}

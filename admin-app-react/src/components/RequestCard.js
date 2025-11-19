@@ -15,7 +15,7 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
       itemName: item.subcategory,
       thickness: item.thickness,
       size: item.size,
-      newStatus: newStatus // 直接使用新的狀態
+      newStatus: newStatus
     });
   };
 
@@ -47,12 +47,12 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>品項</TableCell>
-                <TableCell>厚度</TableCell>
-                <TableCell>尺寸</TableCell>
-                <TableCell align="right">數量</TableCell>
-                <TableCell>單位</TableCell>
-                <TableCell>狀態</TableCell>
+                <TableCell align="center">品項</TableCell>
+                <TableCell align="center">厚度</TableCell>
+                <TableCell align="center">尺寸</TableCell>
+                <TableCell align="center">數量</TableCell>
+                <TableCell align="center">單位</TableCell>
+                <TableCell align="center">狀態</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -61,18 +61,18 @@ function RequestCard({ request, onUpdateStatus, onUpdateItemStatus, updatingId }
                 const isUpdating = updatingId === uniqueItemId;
                 return (
                   <TableRow key={index}>
-                    <TableCell>{item.category} - {item.subcategory}</TableCell>
-                    <TableCell>{item.thickness}</TableCell>
-                    <TableCell>{item.size}</TableCell>
-                    <TableCell align="right">{item.quantity}</TableCell>
-                    <TableCell>{item.unit}</TableCell>
-                    <TableCell>
+                    <TableCell align="center">{item.category} - {item.subcategory}</TableCell>
+                    <TableCell align="center">{item.thickness}</TableCell>
+                    <TableCell align="center">{item.size}</TableCell>
+                    <TableCell align="center">{item.quantity}</TableCell>
+                    <TableCell align="center">{item.unit}</TableCell>
+                    <TableCell align="center">
                       <Select
                         value={item.status}
                         onChange={(e) => handleItemStatusChange(e, item)}
                         disabled={isUpdating}
                         size="small"
-                        sx={{ 
+                        sx={{
                           minWidth: 120,
                           backgroundColor: item.status.trim() === '完成' ? '#e8f5e9' : 'inherit',
                           color: item.status.trim() === '完成' ? '#2e7d32' : 'inherit',

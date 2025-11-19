@@ -129,52 +129,92 @@ function App() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
-    setUpdatingId(orderId); // 開始更新
+    setUpdatingId(orderId);
+    
+    // Optimistic Update
+    setRequests(prevRequests => prevRequests.map(req => 
+      req.id === orderId 
+        ? { ...req, items: req.items.map(item => ({ ...item, status: newStatus })) } 
+        : req
+    ));
+
     try {
       const result = await postRequest('updateStatus', { id: orderId, newStatus });
-      if (result.status === 'success') {
-        fetchData('getRequests', true);
+      if (result.status !== 'success') {
+        fetchData('getRequests', true); // 如果失敗，則重新同步
       }
     } finally {
-      setUpdatingId(null); // 結束更新
+      setUpdatingId(null);
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
     const uniqueId = `${payload.orderId}-${payload.itemName}-${payload.thickness}-${payload.size}`;
-    setUpdatingId(uniqueId); // 開始更新
+    setUpdatingId(uniqueId);
+
+    // Optimistic Update
+    setRequests(prevRequests => prevRequests.map(req => 
+      req.id === payload.orderId 
+        ? { ...req, items: req.items.map(item => 
+            item.subcategory === payload.itemName && item.thickness === payload.thickness && item.size === payload.size
+              ? { ...item, status: payload.newStatus } 
+              : item
+          )} 
+        : req
+    ));
+
     try {
       const result = await postRequest('updateItemStatus', payload);
-      if (result.status === 'success') {
-        fetchData('getRequests', true);
+      if (result.status !== 'success') {
+        fetchData('getRequests', true); // 如果失敗，則重新同步
       }
     } finally {
-      setUpdatingId(null); // 結束更新
+      setUpdatingId(null);
     }
   };
 
   const handleUpdateReturnStatus = async (returnId, newStatus) => {
-    setUpdatingId(`return-${returnId}`); // 開始更新
+    setUpdatingId(`return-${returnId}`);
+
+    // Optimistic Update
+    setReturns(prevReturns => prevReturns.map(ret => 
+      ret.id === returnId 
+        ? { ...ret, items: ret.items.map(item => ({ ...item, status: newStatus })) } 
+        : ret
+    ));
+
     try {
       const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
-      if (result.status === 'success') {
+      if (result.status !== 'success') {
         fetchData('getReturns', true);
       }
     } finally {
-      setUpdatingId(null); // 結束更新
+      setUpdatingId(null);
     }
   };
 
   const handleUpdateReturnItemStatus = async (payload) => {
     const uniqueId = `return-${payload.returnId}-${payload.itemName}`;
-    setUpdatingId(uniqueId); // 開始更新
+    setUpdatingId(uniqueId);
+
+    // Optimistic Update
+    setReturns(prevReturns => prevReturns.map(ret => 
+      ret.id === payload.returnId 
+        ? { ...ret, items: ret.items.map(item => 
+            item.name === payload.itemName
+              ? { ...item, status: payload.newStatus } 
+              : item
+          )} 
+        : ret
+    ));
+
     try {
       const result = await postRequest('updateReturnItemStatus', payload);
-      if (result.status === 'success') {
+      if (result.status !== 'success') {
         fetchData('getReturns', true);
       }
     } finally {
-      setUpdatingId(null); // 結束更新
+      setUpdatingId(null);
     }
   };
 
