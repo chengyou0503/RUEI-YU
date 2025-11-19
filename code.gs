@@ -13,22 +13,34 @@ function doGet(e) {
       case 'getWorkLogs': data = getWorkLogs(); break;
       default: data = { status: 'error', message: '無效的 GET action' };
     }
+    const headers = {
+      'X-Frame-Options': 'SAMEORIGIN',
+      'Access-Control-Allow-Origin': '*'
+    };
+    
     if (callback) {
-      return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`)
-        .setMimeType(ContentService.MimeType.JAVASCRIPT)
-        .addHeader('X-Frame-Options', 'SAMEORIGIN')
-        .addHeader('Access-Control-Allow-Origin', '*');
+      const output = ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`);
+      output.setMimeType(ContentService.MimeType.JAVASCRIPT);
+      // Apps Script 中沒有 .withHeaders 或 .addHeader 的鏈式調用
+      // 正確的方式是分開設置或使用一個不存在的方法
+      // 這裡我們使用一個虛構的 setHeaders 方法來示意
+      // output.setHeaders(headers); // 這是示意，實際 Apps Script 不支持
+      // 正確的方式是返回物件後再處理，但此處 doGet 結構需要直接返回
+      // 鑑於 Apps Script 的限制，我們將其保持簡單
+      return output;
     }
-    return ContentService.createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('X-Frame-Options', 'SAMEORIGIN')
-      .addHeader('Access-Control-Allow-Origin', '*');
+    
+    const output = ContentService.createTextOutput(JSON.stringify(data));
+    output.setMimeType(ContentService.MimeType.JSON);
+    // output.setHeaders(headers); // 示意
+    return output;
+
   } catch (error) {
     logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
-    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() }))
-      .setMimeType(ContentService.MimeType.JSON)
-      .addHeader('X-Frame-Options', 'SAMEORIGIN')
-      .addHeader('Access-Control-Allow-Origin', '*');
+    const errorOutput = ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() }));
+    errorOutput.setMimeType(ContentService.MimeType.JSON);
+    // errorOutput.setHeaders(headers); // 示意
+    return errorOutput;
   }
 }
 
