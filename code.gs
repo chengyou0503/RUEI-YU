@@ -190,7 +190,13 @@ function submitRequest(payload) {
       const recipientPhone = `'${payload.recipientPhone}`;
       return [ newId, timestamp, payload.project, payload.term, payload.engineeringItem, payload.deliveryAddress, payload.deliveryDate, payload.user, userPhone, payload.recipientName, recipientPhone, item.category, item.subcategory, item.thickness, item.size, item.quantity, item.unit, "待處理" ];
     });
-    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, newRows[0].length).setValues(newRows);
+    const startRow = sheet.getLastRow() + 1;
+    const newRange = sheet.getRange(startRow, 1, newRows.length, newRows[0].length);
+    newRange.setValues(newRows);
+
+    // 強制將尺寸欄位(O欄, 第15欄)的格式設為純文字
+    sheet.getRange(startRow, 15, newRows.length, 1).setNumberFormat('@');
+
     lock.releaseLock();
     return createJsonResponse({ status: 'success', message: '請購單已成功送出', id: newId });
   } catch (error) { 
