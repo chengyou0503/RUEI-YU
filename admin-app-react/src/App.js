@@ -132,70 +132,28 @@ function App() {
   const handleUpdateStatus = async (orderId, newStatus) => {
     const result = await postRequest('updateStatus', { id: orderId, newStatus });
     if (result.status === 'success') {
-      // 直接更新 state，避免重新載入
-      setRequests(prevRequests => 
-        prevRequests.map(req => 
-          req.id === orderId 
-            ? { ...req, items: req.items.map(item => ({ ...item, status: newStatus })) }
-            : req
-        )
-      );
+      fetchData('getRequests', true); // 成功後刷新資料
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
     const result = await postRequest('updateItemStatus', payload);
     if (result.status === 'success') {
-      // 直接更新 state
-      setRequests(prevRequests =>
-        prevRequests.map(req =>
-          req.id === payload.orderId
-            ? {
-                ...req,
-                items: req.items.map(item =>
-                  item.subcategory === payload.itemName &&
-                  item.thickness === payload.thickness &&
-                  item.size === payload.size
-                    ? { ...item, status: payload.newStatus }
-                    : item
-                ),
-              }
-            : req
-        )
-      );
+      fetchData('getRequests', true); // 成功後刷新資料
     }
   };
 
   const handleUpdateReturnStatus = async (returnId, newStatus) => {
     const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
     if (result.status === 'success') {
-      setReturns(prev => 
-        prev.map(r => 
-          r.id === returnId 
-            ? { ...r, items: r.items.map(item => ({ ...item, status: newStatus })) }
-            : r
-        )
-      );
+      fetchData('getReturns', true); // 成功後刷新資料
     }
   };
 
   const handleUpdateReturnItemStatus = async (payload) => {
     const result = await postRequest('updateReturnItemStatus', payload);
     if (result.status === 'success') {
-      setReturns(prev =>
-        prev.map(r =>
-          r.id === payload.returnId
-            ? {
-                ...r,
-                items: r.items.map(item =>
-                  item.name === payload.itemName
-                    ? { ...item, status: payload.newStatus }
-                    : item
-                ),
-              }
-            : r
-        )
-      );
+      fetchData('getReturns', true); // 成功後刷新資料
     }
   };
 
