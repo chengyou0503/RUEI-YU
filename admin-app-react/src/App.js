@@ -131,30 +131,44 @@ function App() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
-    const result = await postRequest('updateStatus', { id: orderId, newStatus });
+    const action = 'updateStatus';
+    const payload = { id: orderId, newStatus };
+    console.log(`[Request] Action: ${action}, Payload:`, payload);
+    const result = await postRequest(action, payload);
+    console.log(`[Response] Action: ${action}, Result:`, result);
     if (result.status === 'success') {
-      fetchData('getRequests', true); // 成功後刷新資料
+      fetchData('getRequests', true);
     }
   };
 
   const handleUpdateItemStatus = async (payload) => {
-    const result = await postRequest('updateItemStatus', payload);
+    const action = 'updateItemStatus';
+    console.log(`[Request] Action: ${action}, Payload:`, payload);
+    const result = await postRequest(action, payload);
+    console.log(`[Response] Action: ${action}, Result:`, result);
     if (result.status === 'success') {
-      fetchData('getRequests', true); // 成功後刷新資料
+      fetchData('getRequests', true);
     }
   };
 
   const handleUpdateReturnStatus = async (returnId, newStatus) => {
-    const result = await postRequest('updateReturnStatus', { id: returnId, newStatus });
+    const action = 'updateReturnStatus';
+    const payload = { id: returnId, newStatus };
+    console.log(`[Request] Action: ${action}, Payload:`, payload);
+    const result = await postRequest(action, payload);
+    console.log(`[Response] Action: ${action}, Result:`, result);
     if (result.status === 'success') {
-      fetchData('getReturns', true); // 成功後刷新資料
+      fetchData('getReturns', true);
     }
   };
 
   const handleUpdateReturnItemStatus = async (payload) => {
-    const result = await postRequest('updateReturnItemStatus', payload);
+    const action = 'updateReturnItemStatus';
+    console.log(`[Request] Action: ${action}, Payload:`, payload);
+    const result = await postRequest(action, payload);
+    console.log(`[Response] Action: ${action}, Result:`, result);
     if (result.status === 'success') {
-      fetchData('getReturns', true); // 成功後刷新資料
+      fetchData('getReturns', true);
     }
   };
 
