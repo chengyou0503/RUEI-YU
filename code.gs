@@ -16,16 +16,19 @@ function doGet(e) {
     if (callback) {
       return ContentService.createTextOutput(`${callback}(${JSON.stringify(data)})`)
         .setMimeType(ContentService.MimeType.JAVASCRIPT)
-        .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+        .addHeader('X-Frame-Options', 'SAMEORIGIN')
+        .addHeader('Access-Control-Allow-Origin', '*');
     }
     return ContentService.createTextOutput(JSON.stringify(data))
       .setMimeType(ContentService.MimeType.JSON)
-      .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+      .addHeader('X-Frame-Options', 'SAMEORIGIN')
+      .addHeader('Access-Control-Allow-Origin', '*');
   } catch (error) {
     logToSheet('doGet CATCH', { error: error.toString(), stack: error.stack });
     return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: 'doGet 處理失敗: ' + error.toString() }))
       .setMimeType(ContentService.MimeType.JSON)
-      .withHeaders({'X-Frame-Options': 'SAMEORIGIN', 'Access-Control-Allow-Origin': '*'});
+      .addHeader('X-Frame-Options', 'SAMEORIGIN')
+      .addHeader('Access-Control-Allow-Origin', '*');
   }
 }
 
