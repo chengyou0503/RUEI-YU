@@ -1,5 +1,4 @@
 function doGet(e) {
-  // logToSheet('doGet', { message: "函式被呼叫", eventObject: e });
   try {
     const action = e.parameter.action;
     const callback = e.parameter.callback;
