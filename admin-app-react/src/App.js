@@ -120,6 +120,7 @@ function App() {
       return result;
 
     } catch (e) {
+      console.error(`[postRequest Error] Action: ${action}, Payload:`, payload, "Error:", e); // 新增詳細的 console.error
       setError(`請求失敗: ${e.message}`);
       return { status: 'error', message: e.message };
     } finally {
