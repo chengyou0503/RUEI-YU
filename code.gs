@@ -337,11 +337,12 @@ function updateItemStatus(payload) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("請購單");
     const data = sheet.getDataRange().getValues();
     
+    // 根據最新的欄位順序，修正比對用的欄位索引
     const idCol = 0;         // A 欄
-    const nameCol = 10;        // K 欄 (小分類)
-    const thicknessCol = 11;   // L 欄 (厚度)
-    const sizeCol = 12;        // M 欄 (尺寸)
-    const statusCol = 16;      // Q 欄 (品項狀態) - 因新增期數而後移
+    const nameCol = 12;        // M 欄 (小分類)
+    const thicknessCol = 13;   // N 欄 (厚度)
+    const sizeCol = 14;        // O 欄 (尺寸)
+    const statusCol = 17;      // R 欄 (品項狀態)
 
     let updated = false; // 用於追蹤是否成功更新
 
