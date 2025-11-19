@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, CircularProgress } from '@mui/material';
+import { Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Box, CircularProgress, Select, MenuItem } from '@mui/material';
 
 function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
   const isAllCompleted = ret.items.every(item => item.status.trim() === '完成');
@@ -8,12 +8,15 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
     onUpdateStatus(ret.id, '完成');
   };
 
-  const handleItemComplete = (item) => {
-    onUpdateItemStatus({
-      returnId: ret.id,
-      itemName: item.name,
-      newStatus: '完成'
-    });
+  const handleItemStatusChange = (e, item) => {
+    const newStatus = e.target.value;
+    if (newStatus === '完成') {
+      onUpdateItemStatus({
+        returnId: ret.id,
+        itemName: item.name,
+        newStatus: '完成'
+      });
+    }
   };
 
   return (
@@ -45,7 +48,6 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
                 <TableCell align="right">數量</TableCell>
                 <TableCell>退貨原因</TableCell>
                 <TableCell>狀態</TableCell>
-                <TableCell>動作</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -57,18 +59,22 @@ function ReturnCard({ ret, onUpdateStatus, onUpdateItemStatus, updatingId }) {
                     <TableCell>{item.name}</TableCell>
                     <TableCell align="right">{item.quantity}</TableCell>
                     <TableCell>{item.reason}</TableCell>
-                    <TableCell>{item.status}</TableCell>
                     <TableCell>
-                      {item.status.trim() !== '完成' && (
-                        <Button 
-                          variant="outlined" 
-                          size="small" 
-                          onClick={() => handleItemComplete(item)}
+                      {item.status.trim() === '完成' ? (
+                        <Typography variant="body2" sx={{ color: 'success.main' }}>完成</Typography>
+                      ) : (
+                        <Select
+                          value={item.status}
+                          onChange={(e) => handleItemStatusChange(e, item)}
                           disabled={isUpdating}
-                          sx={{ minWidth: '60px' }}
+                          size="small"
+                          sx={{ minWidth: 120 }}
                         >
-                          {isUpdating ? <CircularProgress size={20} color="inherit" /> : '完成'}
-                        </Button>
+                          <MenuItem value="待處理">
+                            {isUpdating ? <CircularProgress size={20} /> : '待處理'}
+                          </MenuItem>
+                          <MenuItem value="完成">完成</MenuItem>
+                        </Select>
                       )}
                     </TableCell>
                   </TableRow>
