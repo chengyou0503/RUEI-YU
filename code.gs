@@ -231,27 +231,36 @@ function submitWorkLog(payload) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
     const lock = LockService.getScriptLock();
     lock.waitLock(15000);
-    const newId = getNextId(sheet);
-    const timestamp = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
-    const newRow = [
-      newId,
-      timestamp,
-      payload.date,
-      payload.user,
-      payload.project,
-      payload.timeSlot,
-      payload.distinction,
-      payload.floor,
-      payload.term,
-      payload.engineeringItem || '',
-      payload.isCompleted,
-      payload.content,
-      payload.photoUrls ? payload.photoUrls.join(', ') : '',
-      payload.folderUrl || ''
-    ];
-    sheet.appendRow(newRow);
+    
+    // Check if payload is an array (batch submission) or single object
+    const entries = Array.isArray(payload) ? payload : [payload];
+    const newIds = [];
+
+    entries.forEach(entry => {
+        const newId = getNextId(sheet);
+        const timestamp = Utilities.formatDate(new Date(), "Asia/Taipei", "yyyy-MM-dd HH:mm:ss");
+        const newRow = [
+          newId,
+          timestamp,
+          entry.date,
+          entry.user,
+          entry.project,
+          entry.timeSlot,
+          entry.distinction,
+          entry.floor,
+          entry.term,
+          entry.engineeringItem || '',
+          entry.isCompleted,
+          entry.content,
+          entry.photoUrls ? entry.photoUrls.join(', ') : '',
+          entry.folderUrl || ''
+        ];
+        sheet.appendRow(newRow);
+        newIds.push(newId);
+    });
+
     lock.releaseLock();
-    return createJsonResponse({ status: 'success', message: '工作日誌已成功送出', id: newId });
+    return createJsonResponse({ status: 'success', message: '工作日誌已成功送出', ids: newIds });
   } catch (error) {
     // logToSheet('submitWorkLog CATCH', { error: error.toString(), stack: error.stack, payload: payload });
     return createJsonResponse({ status: 'error', message: '提交工作日誌失敗: ' + error.toString() });
@@ -328,21 +337,24 @@ function uploadImage(payload) {
 
 function uploadImages(payload) {
   try {
-    const { files, date, project } = payload;
+    const { files, date, project, term } = payload; // Added term
     if (!project) throw new Error("缺少必要的 'project' 參數。");
     if (!files || !Array.isArray(files) || files.length === 0) return createJsonResponse({ status: 'success', urls: [], folderUrl: '' });
 
     const rootFolderId = "1i3mr6IRKwxJcp-qOV3Y9MUmmUTxbqiC3";
     const rootFolder = DriveApp.getFolderById(rootFolderId);
     const projectFolder = getOrCreateFolder(rootFolder, project);
-    const dateFolder = getOrCreateFolder(projectFolder, date);
+    
+    // Use Term folder if provided, otherwise fallback to Date folder
+    const targetFolderName = term ? term : date;
+    const targetFolder = getOrCreateFolder(projectFolder, targetFolderName);
     
     const urls = [];
     
     files.forEach(file => {
         const decodedData = Utilities.base64Decode(file.fileData.split(',')[1]);
         const blob = Utilities.newBlob(decodedData, MimeType.JPEG, file.fileName);
-        const driveFile = dateFolder.createFile(blob);
+        const driveFile = targetFolder.createFile(blob);
         driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
         urls.push(driveFile.getUrl());
     });
@@ -350,7 +362,7 @@ function uploadImages(payload) {
     return createJsonResponse({ 
       status: 'success', 
       urls: urls,
-      folderUrl: dateFolder.getUrl()
+      folderUrl: targetFolder.getUrl()
     });
   } catch (error) {
     return createJsonResponse({ status: 'error', message: '批次圖片上傳失敗: ' + error.toString() });
