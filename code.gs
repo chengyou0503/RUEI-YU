@@ -56,6 +56,7 @@ function doPost(e) {
       case 'submitWorkLog': return submitWorkLog(payload);
       case 'updateWorkLog': return updateWorkLog(payload);
       case 'uploadImage': return uploadImage(payload);
+      case 'uploadImages': return uploadImages(payload);
       default: return createJsonResponse({ status: 'error', message: '無效的 POST action' });
     }
   } catch (error) {
@@ -322,6 +323,37 @@ function uploadImage(payload) {
   } catch (error) {
     // logToSheet('uploadImage CATCH', { error: error.toString(), stack: error.stack });
     return createJsonResponse({ status: 'error', message: '圖片上傳失敗: ' + error.toString() });
+  }
+}
+
+function uploadImages(payload) {
+  try {
+    const { files, date, project } = payload;
+    if (!project) throw new Error("缺少必要的 'project' 參數。");
+    if (!files || !Array.isArray(files) || files.length === 0) return createJsonResponse({ status: 'success', urls: [], folderUrl: '' });
+
+    const rootFolderId = "1i3mr6IRKwxJcp-qOV3Y9MUmmUTxbqiC3";
+    const rootFolder = DriveApp.getFolderById(rootFolderId);
+    const projectFolder = getOrCreateFolder(rootFolder, project);
+    const dateFolder = getOrCreateFolder(projectFolder, date);
+    
+    const urls = [];
+    
+    files.forEach(file => {
+        const decodedData = Utilities.base64Decode(file.fileData.split(',')[1]);
+        const blob = Utilities.newBlob(decodedData, MimeType.JPEG, file.fileName);
+        const driveFile = dateFolder.createFile(blob);
+        driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        urls.push(driveFile.getUrl());
+    });
+
+    return createJsonResponse({ 
+      status: 'success', 
+      urls: urls,
+      folderUrl: dateFolder.getUrl()
+    });
+  } catch (error) {
+    return createJsonResponse({ status: 'error', message: '批次圖片上傳失敗: ' + error.toString() });
   }
 }
 

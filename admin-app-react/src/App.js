@@ -8,7 +8,7 @@ import ReturnCard from './components/ReturnCard';
 import LogCard from './components/LogCard';
 import EmptyState from './components/EmptyState';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3qgiNKzLBZxg2EXtkV5KwOBfqGCxETWgqMSkoOJK7NT8tJeGOF7gzDuJLhjyHIEZ9QA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzXF4tCernYuo_Xj3e5rSCCJbayVlpWSYER1VcJflGnq8_c9QN1_onepYFffvkMyK1bmQ/exec';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;

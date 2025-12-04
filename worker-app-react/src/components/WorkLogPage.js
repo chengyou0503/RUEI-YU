@@ -201,28 +201,42 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
     const uploadedUrls = [...logData.photoUrls]; // Start with existing URLs
 
     try {
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const { file } = selectedFiles[i];
+      // 1. Compress all images in parallel
+      const compressedFiles = await Promise.all(
+        selectedFiles.map(async ({ file }) => {
+          return await compressImage(file);
+        })
+      );
 
-        // Compress image before upload
-        const { dataUrl, fileName } = await compressImage(file);
+      // 2. Construct batch payload
+      const batchPayload = {
+        files: compressedFiles.map(({ dataUrl, fileName }) => ({
+          fileData: dataUrl,
+          fileName: fileName
+        })),
+        date: logData.date,
+        project: logData.project
+      };
 
-        const payload = {
-          fileData: dataUrl, // Use compressed data URL
-          fileName: fileName,
-          date: logData.date,
-          project: logData.project,
-        };
+      // 3. Send single batch request
+      // Fake progress for better UX since we can't track real upload progress of a single fetch easily without XHR
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) return prev;
+          return prev + 10;
+        });
+      }, 500);
 
-        const uploadResult = await postRequest('uploadImage', payload);
-        if (uploadResult.status === 'success') {
-          uploadedUrls.push(uploadResult.url);
-          folderUrl = uploadResult.folderUrl;
-        } else {
-          throw new Error(uploadResult.message || '上傳失敗');
-        }
+      const uploadResult = await postRequest('uploadImages', batchPayload);
 
-        setUploadProgress(((i + 1) / selectedFiles.length) * 100);
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      if (uploadResult.status === 'success') {
+        uploadedUrls.push(...uploadResult.urls);
+        folderUrl = uploadResult.folderUrl;
+      } else {
+        throw new Error(uploadResult.message || '批次上傳失敗');
       }
 
       const finalLogData = {
