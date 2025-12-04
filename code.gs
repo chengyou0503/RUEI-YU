@@ -54,6 +54,7 @@ function doPost(e) {
       case 'updateReturnStatus': return updateReturnStatus(payload);
       case 'updateReturnItemStatus': return updateReturnItemStatus(payload);
       case 'submitWorkLog': return submitWorkLog(payload);
+      case 'updateWorkLog': return updateWorkLog(payload);
       case 'uploadImage': return uploadImage(payload);
       default: return createJsonResponse({ status: 'error', message: '無效的 POST action' });
     }
@@ -253,6 +254,49 @@ function submitWorkLog(payload) {
   } catch (error) {
     // logToSheet('submitWorkLog CATCH', { error: error.toString(), stack: error.stack, payload: payload });
     return createJsonResponse({ status: 'error', message: '提交工作日誌失敗: ' + error.toString() });
+  }
+}
+
+function updateWorkLog(payload) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("工作日誌");
+    const data = sheet.getDataRange().getValues();
+    const idCol = 0;
+    let updated = false;
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][idCol] == payload.id) {
+        const row = i + 1;
+        const updates = [
+          [
+            payload.date,
+            payload.user,
+            payload.project,
+            payload.timeSlot,
+            payload.distinction,
+            payload.floor,
+            payload.term,
+            payload.engineeringItem || '',
+            payload.isCompleted,
+            payload.content,
+            payload.photoUrls ? payload.photoUrls.join(', ') : '',
+            payload.folderUrl || ''
+          ]
+        ];
+        // Update columns C (3) to N (14) -> 12 columns
+        sheet.getRange(row, 3, 1, 12).setValues(updates);
+        updated = true;
+        break;
+      }
+    }
+
+    if (updated) {
+      return createJsonResponse({ status: 'success', message: '工作日誌已成功更新' });
+    } else {
+      return createJsonResponse({ status: 'error', message: `找不到工作日誌 ID: ${payload.id}` });
+    }
+  } catch (error) {
+    return createJsonResponse({ status: 'error', message: '更新工作日誌失敗: ' + error.toString() });
   }
 }
 

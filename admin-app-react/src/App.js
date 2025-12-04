@@ -8,7 +8,7 @@ import ReturnCard from './components/ReturnCard';
 import LogCard from './components/LogCard';
 import EmptyState from './components/EmptyState';
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw1XrVzPbvsm4beL_rGG3hk3QGjN-8lYDzfXBu1NRwnsPXb2UyrtRtsknEN3roIuqFiAA/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby3qgiNKzLBZxg2EXtkV5KwOBfqGCxETWgqMSkoOJK7NT8tJeGOF7gzDuJLhjyHIEZ9QA/exec';
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -184,7 +184,7 @@ function App() {
         <TabPanel value={tabValue} index={2}>
           {loading ? <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
             : logs.length > 0 ? logs.map(log => <LogCard key={log.id} log={log} />)
-            : <EmptyState message="目前沒有工作日誌" />}
+              : <EmptyState message="目前沒有工作日誌" />}
         </TabPanel>
       </Container>
     </ThemeProvider>

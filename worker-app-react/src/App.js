@@ -11,9 +11,10 @@ import SuccessPage from './components/SuccessPage';
 import ReturnPage from './components/ReturnPage';
 import ReturnSuccessPage from './components/ReturnSuccessPage';
 import ShoppingCart from './components/ShoppingCart';
-import WorkLogPage from './components/WorkLogPage'; // **新增**
+import WorkLogPage from './components/WorkLogPage';
+import WorkLogHistoryPage from './components/WorkLogHistoryPage'; // New Import
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1XrVzPbvsm4beL_rGG3hk3QGjN-8lYDzfXBu1NRwnsPXb2UyrtRtsknEN3roIuqFiAA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycby3qgiNKzLBZxg2EXtkV5KwOBfqGCxETWgqMSkoOJK7NT8tJeGOF7gzDuJLhjyHIEZ9QA/exec";
 const requestSteps = ['身份驗證', '主選單', '專案資訊', '選擇品項', '預覽與確認'];
 const returnSteps = ['身份驗證', '主選單', '退貨申請'];
 const logSteps = ['身份驗證', '主選單', '填寫日誌']; // **新增**
@@ -33,11 +34,14 @@ function App() {
   // 表單資料
   const [formData, setFormData] = useState({
     user: '', project: '', deliveryAddress: '', deliveryDate: '',
-    userPhone: '', recipientName: '', recipientPhone: '', 
+    userPhone: '', recipientName: '', recipientPhone: '',
+    cart: [],
     cart: [],
     returnCart: [],
   });
-  
+
+  const [editingLog, setEditingLog] = useState(null); // New state for editing
+
   // **優化：從完整資料派生出不重複的申請人列表**
   const users = useMemo(() => {
     if (!allUsersData) return [];
@@ -50,20 +54,20 @@ function App() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      postRequest('getData', { sub_action: 'getUsers' }), 
-      postRequest('getData', { sub_action: 'getProjects' }), 
+      postRequest('getData', { sub_action: 'getUsers' }),
+      postRequest('getData', { sub_action: 'getProjects' }),
       postRequest('getData', { sub_action: 'getItems' })
     ]).then(([usersData, projectsData, itemsData]) => {
-        if (usersData.status === 'error' || projectsData.status === 'error' || itemsData.status === 'error') {
-          throw new Error('載入部分初始資料失敗');
-        }
-        const itemsWithId = itemsData.map((item, index) => ({ ...item, id: `item-${index}` }));
-        setAllUsersData(usersData); // **儲存完整資料**
-        setProjects(projectsData);
-        setItems(itemsWithId);
-      }).catch(err => {
-        setError('無法載入初始資料，請檢查 Google Apps Script 部署網址或網路連線。');
-      }).finally(() => setLoading(false));
+      if (usersData.status === 'error' || projectsData.status === 'error' || itemsData.status === 'error') {
+        throw new Error('載入部分初始資料失敗');
+      }
+      const itemsWithId = itemsData.map((item, index) => ({ ...item, id: `item-${index}` }));
+      setAllUsersData(usersData); // **儲存完整資料**
+      setProjects(projectsData);
+      setItems(itemsWithId);
+    }).catch(err => {
+      setError('無法載入初始資料，請檢查 Google Apps Script 部署網址或網路連線。');
+    }).finally(() => setLoading(false));
   }, []);
 
   // --- 核心函式 ---
@@ -113,12 +117,14 @@ function App() {
       navigateTo(11);
     } catch (err) { setError('退貨申請提交失敗，請檢查網路連線。'); } finally { setSubmitting(false); }
   };
-  
+
   const handleWorkLogSubmit = async (logPayload) => {
     setSubmitting(true);
     setError(null);
     try {
-      await postRequest('submitWorkLog', logPayload);
+      const action = logPayload.id ? 'updateWorkLog' : 'submitWorkLog';
+      await postRequest(action, logPayload);
+      setEditingLog(null); // Clear edit state
       navigateTo(21); // 導向日誌成功頁面
     } catch (err) {
       setError('日誌提交失敗，請檢查您的網路連線並稍後再試。');
@@ -127,12 +133,22 @@ function App() {
     }
   };
 
+  const handleEditLog = (log) => {
+    setEditingLog(log);
+    navigateTo(20); // Go to WorkLogPage
+  };
+
+  const handleCancelEdit = () => {
+    setEditingLog(null);
+    navigateTo(22); // Go back to history
+  };
+
   const resetApp = (isReturn = false, isLog = false) => {
     const { user, userPhone } = formData; // 保留 user 和 userPhone
     setFormData({
-      user, 
+      user,
       userPhone,
-      project: '', deliveryAddress: '', deliveryDate: '', 
+      project: '', deliveryAddress: '', deliveryDate: '',
       recipientName: '', recipientPhone: '', cart: [], returnCart: []
     });
     navigateTo(1); // 全部返回主選單
@@ -142,18 +158,18 @@ function App() {
   const renderCurrentStep = () => {
     const pageProps = { navigateTo, updateFormData, formData };
     switch (currentStep) {
-      case 0: return <LoginPage 
-          users={users} 
-          onLogin={(user) => { 
-              const userData = allUsersData.find(u => u.applicant === user);
-              updateFormData({ 
-                  user, 
-                  userPhone: userData ? userData.applicantPhone : '',
-                  recipientName: '', // **優化：預設為空白**
-                  recipientPhone: '' // **優化：預設為空白**
-              }); 
-              navigateTo(1); 
-          }} 
+      case 0: return <LoginPage
+        users={users}
+        onLogin={(user) => {
+          const userData = allUsersData.find(u => u.applicant === user);
+          updateFormData({
+            user,
+            userPhone: userData ? userData.applicantPhone : '',
+            recipientName: '', // **優化：預設為空白**
+            recipientPhone: '' // **優化：預設為空白**
+          });
+          navigateTo(1);
+        }}
       />;
       case 1: return <MainMenu {...pageProps} />;
       case 2: return <ProjectInfoPage {...pageProps} projects={projects} allUsers={allUsersData} />;
@@ -163,8 +179,10 @@ function App() {
       case 10: return <ReturnPage {...pageProps} projects={[...new Set(projects.map(p => p.projectName))]} items={items} returnCart={formData.returnCart} updateReturnCart={updateReturnCart} onSubmit={handleReturnSubmit} isSubmitting={submitting} />;
       case 11: return <ReturnSuccessPage onBackToMenu={() => resetApp(true)} />;
       // **新增：工作日誌流程**
-      case 20: return <WorkLogPage {...pageProps} user={formData.user} projects={projects} onSubmit={handleWorkLogSubmit} isSubmitting={submitting} scriptUrl={SCRIPT_URL} postRequest={postRequest} />;
-      case 21: return <SuccessPage title="工作日誌已成功提交！" onNewRequest={() => resetApp(false, true)} buttonText="返回主選單" />;
+      // **新增：工作日誌流程**
+      case 20: return <WorkLogPage {...pageProps} user={formData.user} projects={projects} onSubmit={handleWorkLogSubmit} isSubmitting={submitting} scriptUrl={SCRIPT_URL} postRequest={postRequest} initialData={editingLog} onCancelEdit={handleCancelEdit} />;
+      case 21: return <SuccessPage title={editingLog ? "工作日誌已更新！" : "工作日誌已成功提交！"} onNewRequest={() => resetApp(false, true)} buttonText="返回主選單" />;
+      case 22: return <WorkLogHistoryPage {...pageProps} user={formData.user} postRequest={postRequest} onEdit={handleEditLog} />;
       default: return <Typography>未知的步驟</Typography>;
     }
   };
@@ -177,7 +195,7 @@ function App() {
     if (currentStep >= 10) return returnSteps;
     return requestSteps;
   };
-  
+
   const getActiveStepIndex = () => {
     if (currentStep >= 20) return currentStep - 20 + 2; // 0, 1, 2 -> 2, 3, 4...
     if (currentStep >= 10) return 2;

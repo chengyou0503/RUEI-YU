@@ -10,6 +10,7 @@ const MainMenu = ({ formData, navigateTo }) => {
     { title: '工地請料', icon: <AddShoppingCartIcon sx={{ fontSize: 40 }} color="primary" />, step: 2, disabled: false },
     { title: '退貨申請', icon: <ReplayIcon sx={{ fontSize: 40 }} color="secondary" />, step: 10, disabled: false },
     { title: '工作日誌', icon: <EditNoteIcon sx={{ fontSize: 40 }} color="action" />, step: 20, disabled: false },
+    { title: '我的日誌', icon: <EditNoteIcon sx={{ fontSize: 40 }} color="info" />, step: 22, disabled: false }, // New Item
   ];
 
   return (
@@ -27,7 +28,7 @@ const MainMenu = ({ formData, navigateTo }) => {
                 disabled={item.disabled}
                 sx={{
                   display: 'flex', flexDirection: 'column',
-                  justifyContent: 'center', 
+                  justifyContent: 'center',
                   p: { xs: 2, sm: 3 }, // 手機上 padding 較小
                   height: '100%'
                 }}
