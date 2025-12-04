@@ -14,7 +14,7 @@ import ShoppingCart from './components/ShoppingCart';
 import WorkLogPage from './components/WorkLogPage';
 import WorkLogHistoryPage from './components/WorkLogHistoryPage'; // New Import
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGFUXwHPVxKZ5WM25RVUeofrhPChP4_UI0hqM4uDB6t458wa9oPEozPf-R8Cah5oP2tA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwbe_MOveMBdCJV6TQjN42uvfN3G8teeVVKA1R_FVjBThI3O-Xq2K-knYjQQp8Fb08weA/exec";
 const requestSteps = ['身份驗證', '主選單', '專案資訊', '選擇品項', '預覽與確認'];
 const returnSteps = ['身份驗證', '主選單', '退貨申請'];
 const logSteps = ['身份驗證', '主選單', '填寫日誌']; // **新增**

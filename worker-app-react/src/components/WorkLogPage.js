@@ -289,7 +289,8 @@ const WorkLogPage = ({ projects, user, onSubmit, isSubmitting, navigateTo, scrip
             files: compressedFiles.map(({ dataUrl, fileName }) => ({ fileData: dataUrl, fileName })),
             date: commonData.date,
             project: commonData.project,
-            term: section.term // Use term for folder organization
+            term: section.term, // Use term for folder organization
+            engineeringItem: section.engineeringItem // Add engineeringItem
           };
 
           // Fake progress

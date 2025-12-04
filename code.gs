@@ -337,7 +337,7 @@ function uploadImage(payload) {
 
 function uploadImages(payload) {
   try {
-    const { files, date, project, term } = payload; // Added term
+    const { files, date, project, term, engineeringItem } = payload; // Added engineeringItem
     if (!project) throw new Error("缺少必要的 'project' 參數。");
     if (!files || !Array.isArray(files) || files.length === 0) return createJsonResponse({ status: 'success', urls: [], folderUrl: '' });
 
@@ -345,8 +345,11 @@ function uploadImages(payload) {
     const rootFolder = DriveApp.getFolderById(rootFolderId);
     const projectFolder = getOrCreateFolder(rootFolder, project);
     
-    // Use Term folder if provided, otherwise fallback to Date folder
-    const targetFolderName = term ? term : date;
+    // Use Term + EngineeringItem folder if provided, otherwise fallback to Date folder
+    let targetFolderName = date;
+    if (term) {
+        targetFolderName = engineeringItem ? `${term}-${engineeringItem}` : term;
+    }
     const targetFolder = getOrCreateFolder(projectFolder, targetFolderName);
     
     const urls = [];
